@@ -624,7 +624,7 @@ void MIPS_lui(CPU *cpu, REGISTER *t, int I)
 
 char *syscall(CPU *cpu)
 {
-    char *str;
+    char *str = NULL;
     switch (cpu->reg[$v0]->value)
     {
     case 1:
