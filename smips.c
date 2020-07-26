@@ -306,7 +306,7 @@ typedef struct I_FORMAT
     unsigned op : 6;
     unsigned rs : 5;
     unsigned rt : 5;
-    unsigned imm : 16;
+    signed imm : 16;
 } I_FORMAT;
 
 /**
@@ -754,12 +754,15 @@ int main(int argv, char *argc[])
         if (is_R_FORMAT(opcode))
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
-            printf("\t%d: %s\n", i, R_STR[instr.funct]);
+            if (instr.funct == SYSCALL)
+                printf("\t%d: %s\n", i, R_STR[instr.funct]);
+            else
+                printf("\t%d: %s\t%s %s %s\n", i, R_STR[instr.funct], REG_NUM_STR[instr.rd], REG_NUM_STR[instr.rs], REG_NUM_STR[instr.rt]);
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
-            printf("\t%d: %s\n", i, I_STR[instr.op]);
+            printf("\t%d: %s\t%s %s %d\n", i, I_STR[instr.op], REG_NUM_STR[instr.rt], REG_NUM_STR[instr.rs], instr.imm);
         }
         else if (is_J_FORMAT(opcode))
         {
