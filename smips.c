@@ -175,40 +175,45 @@ typedef enum reg_name_t
  * 
  * Returns the register from reg_num_t as a string.
  */
-char *REG_NUM_STR[] = {
-    [$0] = "$0",
-    [$1] = "$1",
-    [$2] = "$2",
-    [$3] = "$3",
-    [$4] = "$4",
-    [$5] = "$5",
-    [$6] = "$6",
-    [$7] = "$7",
-    [$8] = "$8",
-    [$9] = "$9",
-    [$10] = "$10",
-    [$11] = "$11",
-    [$12] = "$12",
-    [$13] = "$13",
-    [$14] = "$14",
-    [$15] = "$15",
-    [$16] = "$16",
-    [$17] = "$17",
-    [$18] = "$18",
-    [$19] = "$19",
-    [$20] = "$20",
-    [$21] = "$21",
-    [$22] = "$22",
-    [$23] = "$23",
-    [$24] = "$24",
-    [$25] = "$25",
-    [$26] = "$26",
-    [$27] = "$27",
-    [$28] = "$28",
-    [$29] = "$29",
-    [$30] = "$30",
-    [$31] = "$31",
-};
+char *REG_NUM_STR(int key)
+{
+    char *_REG_NUM_STR[] = {
+        [$0] = "$0",
+        [$1] = "$1",
+        [$2] = "$2",
+        [$3] = "$3",
+        [$4] = "$4",
+        [$5] = "$5",
+        [$6] = "$6",
+        [$7] = "$7",
+        [$8] = "$8",
+        [$9] = "$9",
+        [$10] = "$10",
+        [$11] = "$11",
+        [$12] = "$12",
+        [$13] = "$13",
+        [$14] = "$14",
+        [$15] = "$15",
+        [$16] = "$16",
+        [$17] = "$17",
+        [$18] = "$18",
+        [$19] = "$19",
+        [$20] = "$20",
+        [$21] = "$21",
+        [$22] = "$22",
+        [$23] = "$23",
+        [$24] = "$24",
+        [$25] = "$25",
+        [$26] = "$26",
+        [$27] = "$27",
+        [$28] = "$28",
+        [$29] = "$29",
+        [$30] = "$30",
+        [$31] = "$31",
+    };
+
+    return _REG_NUM_STR[key];
+}
 
 /******************************************************************************
  *                           OPCODE INTERPRETATION                            *
@@ -392,75 +397,89 @@ bool is_I_FORMAT(int opcode)
  * 
  * Returns an R-type instruction from func_t as a string.
  */
-char *R_STR[] = {
-    [ADD] = "add",
-    [ADDU] = "addu",
-    [AND] = "and",
-    [BREAK] = "break",
-    [DIV] = "div",
-    [DIVU] = "divu",
-    [JALR] = "jalr",
-    [JR] = "jr",
-    [MFHI] = "mfhi",
-    [MFLO] = "mflo",
-    [MTHI] = "mthi",
-    [MTLO] = "mtlo",
-    [MULT] = "mult",
-    [MULTU] = "multu",
-    [NOR] = "nor",
-    [OR] = "or",
-    [SLL] = "sll",
-    [SLLV] = "sllv",
-    [SLT] = "slt",
-    [SLTU] = "sltu",
-    [SRA] = "sra",
-    [SRAV] = "srav",
-    [SRL] = "srl",
-    [SRLV] = "srlv",
-    [SUB] = "sub",
-    [SUBU] = "subu",
-    [SYSCALL] = "syscall",
-    [XOR] = "xor"};
+char *R_STR(int key)
+{
+    char *_R_STR[] = {
+        [ADD] = "add",
+        [ADDU] = "addu",
+        [AND] = "and",
+        [BREAK] = "break",
+        [DIV] = "div",
+        [DIVU] = "divu",
+        [JALR] = "jalr",
+        [JR] = "jr",
+        [MFHI] = "mfhi",
+        [MFLO] = "mflo",
+        [MTHI] = "mthi",
+        [MTLO] = "mtlo",
+        [MULT] = "mult",
+        [MULTU] = "multu",
+        [NOR] = "nor",
+        [OR] = "or",
+        [SLL] = "sll",
+        [SLLV] = "sllv",
+        [SLT] = "slt",
+        [SLTU] = "sltu",
+        [SRA] = "sra",
+        [SRAV] = "srav",
+        [SRL] = "srl",
+        [SRLV] = "srlv",
+        [SUB] = "sub",
+        [SUBU] = "subu",
+        [SYSCALL] = "syscall",
+        [XOR] = "xor"};
+
+    return _R_STR[key];
+}
 
 /**
  * Designated initialiser to allow "reverse lookup" into op_t enums.
  * 
  * Returns an I-type instruction from op_t as a string.
  */
-char *I_STR[] = {
-    [ADDI] = "addi",
-    [ADDIU] = "addiu",
-    [ANDI] = "andi",
-    [BEQ] = "beq",
-    [BGEZ] = "bgez",
-    [BGTZ] = "bgtz",
-    [BLEZ] = "blez",
-    // [BLTZ] = "bltz",
-    [BNE] = "bne",
-    [LB] = "lb",
-    [LBU] = "lbu",
-    [LH] = "lh",
-    [LHU] = "lhu",
-    [LUI] = "lui",
-    [LW] = "lw",
-    [LWCL] = "LWCL",
-    [ORI] = "ori",
-    [SB] = "sb",
-    [SLTI] = "slti",
-    [SLTIU] = "sltiu",
-    [SH] = "sh",
-    [SW] = "sw",
-    [SWCL] = "swcl",
-    [XORI] = "xori"};
+char *I_STR(int key)
+{
+    char *_I_STR[] = {
+        [ADDI] = "addi",
+        [ADDIU] = "addiu",
+        [ANDI] = "andi",
+        [BEQ] = "beq",
+        [BGEZ] = "bgez",
+        [BGTZ] = "bgtz",
+        [BLEZ] = "blez",
+        // [BLTZ] = "bltz",
+        [BNE] = "bne",
+        [LB] = "lb",
+        [LBU] = "lbu",
+        [LH] = "lh",
+        [LHU] = "lhu",
+        [LUI] = "lui",
+        [LW] = "lw",
+        [LWCL] = "LWCL",
+        [ORI] = "ori",
+        [SB] = "sb",
+        [SLTI] = "slti",
+        [SLTIU] = "sltiu",
+        [SH] = "sh",
+        [SW] = "sw",
+        [SWCL] = "swcl",
+        [XORI] = "xori"};
 
+    return _I_STR[key];
+}
 /**
  * Designated initialiser to allow "reverse lookup" into op_t enums.
  * 
  * Returns an J-type instruction from op_t as a string.
  */
-char *J_STR[] = {
-    [J] = "j",
-    [JAL] = "jal"};
+char *J_STR(int key)
+{
+    char *_J_STR[] = {
+        [J] = "j",
+        [JAL] = "jal"};
+
+    return _J_STR[key];
+}
 
 /******************************************************************************
  *                               HARDWARE                                     *
@@ -755,19 +774,19 @@ int main(int argv, char *argc[])
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
             if (instr.funct == SYSCALL)
-                printf("\t%d: %s\n", i, R_STR[instr.funct]);
+                printf("\t%d: %s\n", i, R_STR(instr.funct));
             else
-                printf("\t%d: %s\t%s %s %s\n", i, R_STR[instr.funct], REG_NUM_STR[instr.rd], REG_NUM_STR[instr.rs], REG_NUM_STR[instr.rt]);
+                printf("\t%d: %s\t%s %s %s\n", i, R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
-            printf("\t%d: %s\t%s %s %d\n", i, I_STR[instr.op], REG_NUM_STR[instr.rt], REG_NUM_STR[instr.rs], instr.imm);
+            printf("\t%d: %s\t%s %s %d\n", i, I_STR(instr.op), REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
         }
         else if (is_J_FORMAT(opcode))
         {
             J_FORMAT instr = extract_J_FORMAT(opcode);
-            printf("\t%d: %s\n", i, J_STR[instr.op]);
+            printf("\t%d: %s\n", i, J_STR(instr.op));
         }
     }
 
@@ -776,7 +795,7 @@ int main(int argv, char *argc[])
     printf("Registers After Execution\n");
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value != 0)
-            printf("%s = %d\n", REG_NUM_STR[cpu->reg[i]->name], cpu->reg[i]->value);
+            printf("%s = %d\n", REG_NUM_STR(cpu->reg[i]->name), cpu->reg[i]->value);
 
     free_CPU(cpu);
     free_RAM(ram);
