@@ -45,6 +45,109 @@
 #define MAX_LINE 128
 
 /******************************************************************************
+ *                                X MACROS                                    *
+ ******************************************************************************/
+
+/* Registers */
+#define REG_NUM_TABLE  \
+    X($0, $zero, "$0") \
+    X($1, $at, "$1")   \
+    X($2, $v0, "$2")   \
+    X($3, $v1, "$3")   \
+    X($4, $a0, "$4")   \
+    X($5, $a1, "$5")   \
+    X($6, $a2, "$6")   \
+    X($7, $a3, "$7")   \
+    X($8, $t0, "$8")   \
+    X($9, $t1, "$9")   \
+    X($10, $t2, "$10") \
+    X($11, $t3, "$11") \
+    X($12, $t4, "$12") \
+    X($13, $t5, "$13") \
+    X($14, $t6, "$14") \
+    X($15, $t7, "$15") \
+    X($16, $s0, "$16") \
+    X($17, $s1, "$17") \
+    X($18, $s2, "$18") \
+    X($19, $s3, "$19") \
+    X($20, $s4, "$20") \
+    X($21, $s5, "$21") \
+    X($22, $s6, "$22") \
+    X($23, $s7, "$23") \
+    X($24, $t8, "$24") \
+    X($25, $t9, "$25") \
+    X($26, $k0, "$26") \
+    X($27, $k1, "$27") \
+    X($28, $gp, "$28") \
+    X($29, $sp, "$29") \
+    X($30, $fa, "$30") \
+    X($31, $ra, "$31")
+
+/* R-type instructions */
+#define R_TYPE_TABLE                              \
+    R(ADD, 0b100000, "add", MIPS_add)             \
+    R(ADDU, 0b100001, "addu", MIPS_addu)          \
+    R(AND, 0b100100, "and", MIPS_and)             \
+    R(BREAK, 0b001101, "break", MIPS_break)       \
+    R(DIV, 0b011010, "div", MIPS_div)             \
+    R(DIVU, 0b011011, "divu", MIPS_divu)          \
+    R(JALR, 0b001001, "jalr", MIPS_jalr)          \
+    R(JR, 0b001000, "jr", MIPS_jr)                \
+    R(MFHI, 0b010000, "mfhi", MIPS_mfhi)          \
+    R(MFLO, 0b010010, "mflo", MIPS_mflo)          \
+    R(MTHI, 0b010001, "mthi", MIPS_mthi)          \
+    R(MTLO, 0b010011, "mtlo", MIPS_mtlo)          \
+    R(MUL, 0b011100, "mul", MIPS_mul)             \
+    R(MULT, 0b011000, "mult", MIPS_mult)          \
+    R(MULTU, 0b011001, "multu", MIPS_multu)       \
+    R(NOR, 0b100111, "nor", MIPS_nor)             \
+    R(OR, 0b100101, "or", MIPS_or)                \
+    R(SLL, 0b000000, "sll", MIPS_sll)             \
+    R(SLLV, 0b000100, "sllv", MIPS_sllv)          \
+    R(SLT, 0b101010, "slt", MIPS_slt)             \
+    R(SLTU, 0b101011, "sltu", MIPS_sltu)          \
+    R(SRA, 0b000011, "sra", MIPS_sra)             \
+    R(SRAV, 0b000111, "srav", MIPS_srav)          \
+    R(SRL, 0b000010, "srl", MIPS_srl)             \
+    R(SRLV, 0b000110, "srlv", MIPS_srlv)          \
+    R(SUB, 0b100010, "sub", MIPS_sub)             \
+    R(SUBU, 0b100011, "subu", MIPS_subu)          \
+    R(SYSCALL, 0b001100, "syscall", MIPS_syscall) \
+    R(XOR, 0b100110, "xor", MIPS_xor)
+
+/* I-type instructions */
+#define I_TYPE_TABLE                        \
+    I(ADDI, 0b001000, "addi", MIPS_addi)    \
+    I(ADDIU, 0b001001, "addiu", MIPS_addiu) \
+    I(ANDI, 0b001100, "andi", MIPS_andi)    \
+    I(BEQ, 0b000100, "beq", MIPS_beq)       \
+    I(BGEZ, 0b000001, "bgez", MIPS_bgez)    \
+    I(BGTZ, 0b000111, "bgtz", MIPS_bgtz)    \
+    I(BLEZ, 0b000110, "blez", MIPS_blez)    \
+    I(BLTZ, 0b000001, "bltz", MIPS_bltz)    \
+    I(BNE, 0b000101, "bne", MIPS_bne)       \
+    I(LB, 0b100000, "lb", MIPS_lb)          \
+    I(LBU, 0b100100, "lbu", MIPS_lbu)       \
+    I(LH, 0b100001, "lh", MIPS_lh)          \
+    I(LHU, 0b100101, "lhu", MIPS_lhu)       \
+    I(LUI, 0b001111, "lui", MIPS_lui)       \
+    I(LW, 0b100011, "lw", MIPS_lw)          \
+    I(LWCL, 0b110001, "lwcl", MIPS_lwcl)    \
+    I(ORI, 0b001101, "ori", MIPS_ori)       \
+    I(SB, 0b101000, "sb", MIPS_sb)          \
+    I(SLTI, 0b001010, "slti", MIPS_slti)    \
+    I(SLTIU, 0b001011, "sltiu", MIPS_sltiu) \
+    I(SH, 0b101001, "sh", MIPS_sh)          \
+    I(SW, 0b101011, "sw", MIPS_sw)          \
+    I(SWCL, 0b111001, "swcl", MIPS_swcl)    \
+    I(XORI, 0b001110, "xori", MIPS_xori)
+
+/* J-type instructions */
+#define J_TYPE_TABLE            \
+    J(J, 0b000010, "j", MIPS_j) \
+    J(JAL, 0b000011, "jal", MIPS_jal)
+
+/******************************************************************************
  *                          REGISTER CONVENTIONS                              *
  ******************************************************************************/
 
@@ -58,162 +161,33 @@ typedef __uint8_t byte_t;  // Size of byte.
 /**
  * MIPS has 32 registers numbers.
  */
+#define X(REG_NUM, REG_NAME, STR) REG_NUM,
 typedef enum reg_num_t
 {
-    $0,
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10,
-    $11,
-    $12,
-    $13,
-    $14,
-    $15,
-    $16,
-    $17,
-    $18,
-    $19,
-    $20,
-    $21,
-    $22,
-    $23,
-    $24,
-    $25,
-    $26,
-    $27,
-    $28,
-    $29,
-    $30,
-    $31,
+    REG_NUM_TABLE
 } reg_num_t;
+#undef X
 
 /**
  * MIPS registers have conventional names.
  */
+#define X(REG_NUM, REG_NAME, STR) REG_NAME,
 typedef enum reg_name_t
 {
-    $zero,
-    $at,
-    $v0,
-    $v1,
-    $a0,
-    $a1,
-    $a2,
-    $a3,
-    $t0,
-    $t1,
-    $t2,
-    $t3,
-    $t4,
-    $t5,
-    $t6,
-    $t7,
-    $s0,
-    $s1,
-    $s2,
-    $s3,
-    $s4,
-    $s5,
-    $s6,
-    $s7,
-    $t8,
-    $t9,
-    $k0,
-    $k1,
-    $gp,
-    $sp,
-    $fa,
-    $ra,
+    REG_NUM_TABLE
 } reg_name_t;
-
-// typedef enum fl_reg_name
-// {
-//     $f0,
-//     $f1,
-//     $f2,
-//     $f4,
-//     $f5,
-//     $f6,
-//     $f7,
-//     $f8,
-//     $f9,
-//     $f10,
-//     $f12,
-//     $f13,
-//     $f14,
-//     $f16,
-//     $f17,
-//     $f18,
-//     $f20,
-//     $f21,
-//     $f22,
-//     $f23,
-//     $f24,
-//     $f25,
-//     $f26,
-//     $f27,
-//     $f28,
-//     $f29,
-//     $f30,
-// } fl_reg_name;
-
-// typedef enum bin_reg_name
-// {
-//     Lo,
-//     Hi
-// } bin_reg_name;
+#undef X
 
 /**
- * Designated initialiser to allow "reverse lookup" into reg_num_t enums.
- * 
- * Returns the register from reg_num_t as a string.
+ * Returns the register from REG_NUM_TABLE as a string.
  */
+#define X(REG_NUM, REG_NAME, STR) STR,
 char *REG_NUM_STR(int key)
 {
-    char *_REG_NUM_STR[] = {
-        [$0] = "$0",
-        [$1] = "$1",
-        [$2] = "$2",
-        [$3] = "$3",
-        [$4] = "$4",
-        [$5] = "$5",
-        [$6] = "$6",
-        [$7] = "$7",
-        [$8] = "$8",
-        [$9] = "$9",
-        [$10] = "$10",
-        [$11] = "$11",
-        [$12] = "$12",
-        [$13] = "$13",
-        [$14] = "$14",
-        [$15] = "$15",
-        [$16] = "$16",
-        [$17] = "$17",
-        [$18] = "$18",
-        [$19] = "$19",
-        [$20] = "$20",
-        [$21] = "$21",
-        [$22] = "$22",
-        [$23] = "$23",
-        [$24] = "$24",
-        [$25] = "$25",
-        [$26] = "$26",
-        [$27] = "$27",
-        [$28] = "$28",
-        [$29] = "$29",
-        [$30] = "$30",
-        [$31] = "$31",
-    };
-
+    char *_REG_NUM_STR[] = {REG_NUM_TABLE};
     return _REG_NUM_STR[key];
 }
+#undef X
 
 /******************************************************************************
  *                           OPCODE INTERPRETATION                            *
@@ -222,74 +196,25 @@ char *REG_NUM_STR(int key)
 /**
  * R-type instructions are encoded by funct and have 0000000 opcode.
  */
+#define R(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
 typedef enum funct_t
 {
-    ADD = 0b100000,
-    ADDU = 0b100001,
-    AND = 0b100100,
-    BREAK = 0b001101,
-    DIV = 0b011010,
-    DIVU = 0b011011,
-    JALR = 0b001001,
-    JR = 0b001000,
-    MFHI = 0b010000,
-    MFLO = 0b010010,
-    MTHI = 0b010001,
-    MTLO = 0b010011,
-    MUL = 0b011100,
-    MULT = 0b011000,
-    MULTU = 0b011001,
-    NOR = 0b100111,
-    OR = 0b100101,
-    SLL = 0b000000,
-    SLLV = 0b000100,
-    SLT = 0b101010,
-    SLTU = 0b101011,
-    SRA = 0b000011,
-    SRAV = 0b000111,
-    SRL = 0b000010,
-    SRLV = 0b000110,
-    SUB = 0b100010,
-    SUBU = 0b100011,
-    SYSCALL = 0b001100,
-    XOR = 0b100110,
+    R_TYPE_TABLE
 } funct_t;
+#undef R
 
 /**
  * I-type and J-type instructions are encoded by opcode.
  */
+#define I(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
+#define J(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
+
 typedef enum op_t
 {
-    /* I-type instructions */
-    ADDI = 0b001000,
-    ADDIU = 0b001001,
-    ANDI = 0b001100,
-    BEQ = 0b000100,
-    BGEZ = 0b000001,
-    BGTZ = 0b000111,
-    BLEZ = 0b000110,
-    BLTZ = 0b000001,
-    BNE = 0b000101,
-    LB = 0b100000,
-    LBU = 0b100100,
-    LH = 0b100001,
-    LHU = 0b100101,
-    LUI = 0b001111,
-    LW = 0b100011,
-    LWCL = 0b110001,
-    ORI = 0b001101,
-    SB = 0b101000,
-    SLTI = 0b001010,
-    SLTIU = 0b001011,
-    SH = 0b101001,
-    SW = 0b101011,
-    SWCL = 0b111001,
-    XORI = 0b001110,
-
-    /* J-type instructions */
-    J = 0b000010,
-    JAL = 0b000011,
+    I_TYPE_TABLE J_TYPE_TABLE
 } op_t;
+#undef I
+#undef J
 
 /**
  * R-type format.
@@ -394,97 +319,37 @@ bool is_I_FORMAT(int opcode)
 }
 
 /**
- * Designated initialiser to allow "reverse lookup" into func_t enums.
- * 
- * Returns an R-type instruction from func_t as a string.
+ * Returns the R-type instruction from R_TYPE_TABLE as a string.
  */
+#define R(NAME, NUM, STR, FUNC_PTR) [NAME] = STR,
 char *R_STR(int key)
 {
-    char *_R_STR[] = {
-        [ADD] = "add",
-        [ADDU] = "addu",
-        [AND] = "and",
-        [BREAK] = "break",
-        [DIV] = "div",
-        [DIVU] = "divu",
-        [JALR] = "jalr",
-        [JR] = "jr",
-        [MFHI] = "mfhi",
-        [MFLO] = "mflo",
-        [MTHI] = "mthi",
-        [MTLO] = "mtlo",
-        [MUL] = "mul",
-        [MULT] = "mult",
-        [MULTU] = "multu",
-        [NOR] = "nor",
-        [OR] = "or",
-        [SLL] = "sll",
-        [SLLV] = "sllv",
-        [SLT] = "slt",
-        [SLTU] = "sltu",
-        [SRA] = "sra",
-        [SRAV] = "srav",
-        [SRL] = "srl",
-        [SRLV] = "srlv",
-        [SUB] = "sub",
-        [SUBU] = "subu",
-        [SYSCALL] = "syscall",
-        [XOR] = "xor",
-    };
-
+    char *_R_STR[] = {R_TYPE_TABLE};
     return _R_STR[key];
 }
+#undef R
 
 /**
- * Designated initialiser to allow "reverse lookup" into op_t enums.
- * 
- * Returns an I-type instruction from op_t as a string.
+ * Returns the I-type instruction from I_TYPE_TABLE as a string.
  */
+#define I(NAME, NUM, STR, FUNC_PTR) [NAME] = STR,
 char *I_STR(int key)
 {
-    char *_I_STR[] = {
-        [ADDI] = "addi",
-        [ADDIU] = "addiu",
-        [ANDI] = "andi",
-        [BEQ] = "beq",
-        [BGEZ] = "bgez",
-        [BGTZ] = "bgtz",
-        [BLEZ] = "blez",
-        // [BLTZ] = "bltz",
-        [BNE] = "bne",
-        [LB] = "lb",
-        [LBU] = "lbu",
-        [LH] = "lh",
-        [LHU] = "lhu",
-        [LUI] = "lui",
-        [LW] = "lw",
-        [LWCL] = "LWCL",
-        [ORI] = "ori",
-        [SB] = "sb",
-        [SLTI] = "slti",
-        [SLTIU] = "sltiu",
-        [SH] = "sh",
-        [SW] = "sw",
-        [SWCL] = "swcl",
-        [XORI] = "xori",
-    };
-
+    char *_I_STR[] = {I_TYPE_TABLE};
     return _I_STR[key];
 }
+#undef I
+
 /**
- * Designated initialiser to allow "reverse lookup" into op_t enums.
- * 
- * Returns an J-type instruction from op_t as a string.
+ * Returns the J-type instruction from J_TYPE_TABLE as a string.
  */
+#define J(NAME, NUM, STR, FUNC_PTR) [NAME] = STR,
 char *J_STR(int key)
 {
-    char *_J_STR[] = {
-        [J] = "j",
-        [JAL] = "jal",
-    };
-
+    char *_J_STR[] = {J_TYPE_TABLE};
     return _J_STR[key];
 }
+#undef J
 
 /******************************************************************************
  *                               HARDWARE                                     *
@@ -597,6 +462,48 @@ void free_CPU(CPU *cpu)
 /******************************************************************************
  *                              MIPS FUNCTIONS                                *
  ******************************************************************************/
+
+void MIPS_addu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_break(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_div(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_divu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_jalr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_jr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_mfhi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_mflo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_mthi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_mtlo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_mult(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_multu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_nor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sll(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sllv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sltu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sra(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_srav(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_srl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_srlv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_subu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_xor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_addiu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_bgez(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_bgtz(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_blez(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_bltz(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lb(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lbu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lh(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lhu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lw(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_lwcl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sb(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sltiu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sh(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_sw(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_swcl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_xori(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_j(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
+void MIPS_jal(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
 
 /**
  * Emulate MIPS add.
@@ -748,49 +655,40 @@ void MIPS_syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *
 }
 
 /**
- * Returns the function pointer to an R-type instruction from funct_t given a
- * matching key.
+ * Returns the function pointer to an R-type instruction from R_TYPE_TABLE
+ * given a matching key.
  */
+#define R(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
 void *execute_R_instr(int key)
 {
-    void *_R_FUNC[] = {
-        [ADD] = MIPS_add,
-        [AND] = MIPS_and,
-        [MUL] = MIPS_mul,
-        [OR] = MIPS_or,
-        [SLT] = MIPS_slt,
-        [SUB] = MIPS_sub,
-        [SYSCALL] = MIPS_syscall,
-    };
-
+    void *_R_FUNC[] = {R_TYPE_TABLE};
     return _R_FUNC[key];
 }
+#undef R
 
 /**
- * Returns the function pointer to an I-type instruction from op_t given a
- * matching key.
+ * Returns the function pointer to an I-type instruction from I_TYPE_TABLE
+ * given a matching key.
  */
+#define I(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
 void *execute_I_instr(int key)
 {
-    void *_I_FUNC[] = {
-        [ADDI] = MIPS_addi,
-        [ANDI] = MIPS_andi,
-        [BEQ] = MIPS_beq,
-        [BNE] = MIPS_bne,
-        [LUI] = MIPS_lui,
-        [ORI] = MIPS_ori,
-        [SLTI] = MIPS_slti,
-    };
-
+    void *_I_FUNC[] = {I_TYPE_TABLE};
     return _I_FUNC[key];
 }
+#undef I
+
 /**
- * Returns the function pointer to a J-type instruction from op_t given a
- * matching key.
+ * Returns the function pointer to a J-type instruction from J_TYPE_TABLE
+ * given a matching key.
  */
+#define J(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
 void *execute_J_instr(int key)
 {
+    void *_J_FUNC[] = {J_TYPE_TABLE};
+    return _J_FUNC[key];
 }
+#undef J
 
 /******************************************************************************
  *                                  MAIN                                      *
@@ -828,7 +726,7 @@ int main(int argv, char *argc[])
             else
             {
                 printf("\t%d: %s\t%s %s %s\n", i, R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
-                *execute_R_instr(instr.funct)(cpu, instr.rd, instr.rs, instr.rt);
+                // *execute_R_instr(instr.funct)(cpu, instr.rd, instr.rs, instr.rt);
             }
         }
         else if (is_I_FORMAT(opcode))
