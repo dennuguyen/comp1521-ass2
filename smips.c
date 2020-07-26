@@ -236,6 +236,7 @@ typedef enum funct_t
     MFLO = 0b010010,
     MTHI = 0b010001,
     MTLO = 0b010011,
+    MUL = 0b011100,
     MULT = 0b011000,
     MULTU = 0b011001,
     NOR = 0b100111,
@@ -412,6 +413,7 @@ char *R_STR(int key)
         [MFLO] = "mflo",
         [MTHI] = "mthi",
         [MTLO] = "mtlo",
+        [MUL] = "mul",
         [MULT] = "mult",
         [MULTU] = "multu",
         [NOR] = "nor",
@@ -596,7 +598,7 @@ void free_CPU(CPU *cpu)
 /**
  * Emulate MIPS add.
  */
-void add(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_add(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value + t->value;
 }
@@ -604,7 +606,7 @@ void add(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS and.
  */
-void and (CPU * cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_and(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value & t->value;
 }
@@ -612,7 +614,7 @@ void and (CPU * cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS sub.
  */
-void sub(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_sub(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value - t->value;
 }
@@ -620,7 +622,7 @@ void sub(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS or.
  */
-void or (CPU * cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_or(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value | t->value;
 }
@@ -628,7 +630,7 @@ void or (CPU * cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS slt.
  */
-void slt(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_slt(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value < t->value ? 1 : 0;
 }
@@ -636,7 +638,7 @@ void slt(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS mul.
  */
-void mul(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_mul(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
     d->value = s->value * t->value;
 }
@@ -644,7 +646,7 @@ void mul(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 /**
  * Emulate MIPS beq.
  */
-void beq(CPU *cpu, REGISTER *s, REGISTER *t, int I)
+void MIPS_beq(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 {
     if (s->value == t->value)
         cpu->pc += I;
@@ -653,7 +655,7 @@ void beq(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 /**
  * Emulate MIPS bne.
  */
-void bne(CPU *cpu, REGISTER *s, REGISTER *t, int I)
+void MIPS_bne(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 {
     if (s->value != t->value)
         cpu->pc += I;
@@ -662,7 +664,7 @@ void bne(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 /**
  * Emulate MIPS addi.
  */
-void addi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
+void MIPS_addi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 {
     t->value = s->value + I;
 }
@@ -670,7 +672,7 @@ void addi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 /**
  * Emulate MIPS slti.
  */
-void slti(CPU *cpu, REGISTER *t, REGISTER *s, int I)
+void MIPS_slti(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 {
     t->value = s->value < I;
 }
@@ -678,7 +680,7 @@ void slti(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 /**
  * Emulate MIPS andi.
  */
-void andi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
+void MIPS_andi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 {
     t->value = s->value & I;
 }
@@ -686,7 +688,7 @@ void andi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 /**
  * Emulate MIPS ori.
  */
-void ori(CPU *cpu, REGISTER *t, REGISTER *s, int I)
+void MIPS_ori(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 {
     t->value = s->value | I;
 }
@@ -694,7 +696,7 @@ void ori(CPU *cpu, REGISTER *t, REGISTER *s, int I)
 /**
  * Emulate MIPS ori.
  */
-void lui(CPU *cpu, REGISTER *t, int I)
+void MIPS_lui(CPU *cpu, REGISTER *t, int I)
 {
     t->value = I << 16;
 }
@@ -702,7 +704,7 @@ void lui(CPU *cpu, REGISTER *t, int I)
 /**
  * Emulate MIPS syscall.
  */
-void syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *a3, REGISTER *v0)
+void MIPS_syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *a3, REGISTER *v0)
 {
     switch (v0->value)
     {
@@ -742,6 +744,49 @@ void syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *a3, R
     }
 }
 
+/**
+ * Returns the function pointer to an R-type instruction from funct_t given a
+ * matching key.
+ */
+void *execute_R_instr(int key)
+{
+    void *_R_FUNC[] = {
+        [ADD] = MIPS_add,
+        [AND] = MIPS_and,
+        [MUL] = MIPS_mul,
+        [OR] = MIPS_or,
+        [SLT] = MIPS_slt,
+        [SUB] = MIPS_sub,
+        [SYSCALL] = MIPS_syscall};
+
+    return _R_FUNC[key];
+}
+
+/**
+ * Returns the function pointer to an I-type instruction from op_t given a
+ * matching key.
+ */
+void *execute_I_instr(int key)
+{
+    void *_I_FUNC[] = {
+        [ADDI] = MIPS_addi,
+        [ANDI] = MIPS_andi,
+        [BEQ] = MIPS_beq,
+        [BNE] = MIPS_bne,
+        [LUI] = MIPS_lui,
+        [ORI] = MIPS_ori,
+        [SLTI] = MIPS_slti};
+
+    return _I_FUNC[key];
+}
+/**
+ * Returns the function pointer to a J-type instruction from op_t given a
+ * matching key.
+ */
+void *execute_J_instr(int key)
+{
+}
+
 /******************************************************************************
  *                                  MAIN                                      *
  ******************************************************************************/
@@ -765,7 +810,7 @@ int main(int argv, char *argc[])
     int *ram = init_RAM();
 
     printf("Program\n");
-    char line[MAX_LINE];
+    char line[MAX_LINE], buffer[MAX_LINE];
     for (int i = 0; fgets(line, sizeof(line), f); i++)
     {
         int opcode = (int)strtol(line, NULL, 16);
@@ -776,7 +821,10 @@ int main(int argv, char *argc[])
             if (instr.funct == SYSCALL)
                 printf("\t%d: %s\n", i, R_STR(instr.funct));
             else
+            {
                 printf("\t%d: %s\t%s %s %s\n", i, R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+                *execute_R_instr(instr.funct)(cpu, instr.rd, instr.rs, instr.rt);
+            }
         }
         else if (is_I_FORMAT(opcode))
         {
