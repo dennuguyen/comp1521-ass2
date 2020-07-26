@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUM_REGISTERS 32
+#define NUM_REGISTERS 50
 #define RAM_BUFFER 1008
 #define LO 0
 #define HI !(LO)
@@ -123,6 +123,37 @@ typedef enum reg_name
     $fa,
     $ra,
 } reg_name;
+
+typedef enum fl_reg_name
+{
+    $f0,
+    $f1,
+    $f2,
+    $f4,
+    $f5,
+    $f6,
+    $f7,
+    $f8,
+    $f9,
+    $f10,
+    $f12,
+    $f13,
+    $f14,
+    $f16,
+    $f17,
+    $f18,
+    $f20,
+    $f21,
+    $f22,
+    $f23,
+    $f24,
+    $f25,
+    $f26,
+    $f27,
+    $f28,
+    $f29,
+    $f30,
+} fl_reg_name;
 
 /**
  * A MIPS register has a register name and value of size 'reg_t'.
