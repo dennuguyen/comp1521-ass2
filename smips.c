@@ -45,7 +45,7 @@
 #define MAX_LINE 128
 
 /******************************************************************************
- *                              MIPS CONVENTIONS                              *
+ *                          REGISTER CONVENTIONS                              *
  ******************************************************************************/
 
 /**
@@ -252,7 +252,7 @@ typedef enum funct_t
     SUB = 0b100010,
     SUBU = 0b100011,
     SYSCALL = 0b001100,
-    XOR = 0b100110
+    XOR = 0b100110,
 } funct_t;
 
 /**
@@ -288,7 +288,7 @@ typedef enum op_t
 
     /* J-type instructions */
     J = 0b000010,
-    JAL = 0b000011
+    JAL = 0b000011,
 } op_t;
 
 /**
@@ -429,7 +429,8 @@ char *R_STR(int key)
         [SUB] = "sub",
         [SUBU] = "subu",
         [SYSCALL] = "syscall",
-        [XOR] = "xor"};
+        [XOR] = "xor",
+    };
 
     return _R_STR[key];
 }
@@ -465,7 +466,8 @@ char *I_STR(int key)
         [SH] = "sh",
         [SW] = "sw",
         [SWCL] = "swcl",
-        [XORI] = "xori"};
+        [XORI] = "xori",
+    };
 
     return _I_STR[key];
 }
@@ -478,7 +480,8 @@ char *J_STR(int key)
 {
     char *_J_STR[] = {
         [J] = "j",
-        [JAL] = "jal"};
+        [JAL] = "jal",
+    };
 
     return _J_STR[key];
 }
@@ -757,7 +760,8 @@ void *execute_R_instr(int key)
         [OR] = MIPS_or,
         [SLT] = MIPS_slt,
         [SUB] = MIPS_sub,
-        [SYSCALL] = MIPS_syscall};
+        [SYSCALL] = MIPS_syscall,
+    };
 
     return _R_FUNC[key];
 }
@@ -775,7 +779,8 @@ void *execute_I_instr(int key)
         [BNE] = MIPS_bne,
         [LUI] = MIPS_lui,
         [ORI] = MIPS_ori,
-        [SLTI] = MIPS_slti};
+        [SLTI] = MIPS_slti,
+    };
 
     return _I_FUNC[key];
 }
