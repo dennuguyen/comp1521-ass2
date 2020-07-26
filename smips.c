@@ -116,30 +116,30 @@
     R(XOR, 0b100110, "xor", MIPS_xor)
 
 /* I-type instructions */
-#define I_TYPE_TABLE                        \
-    I(ADDI, 0b001000, "addi", MIPS_addi)    \
-    I(ADDIU, 0b001001, "addiu", MIPS_addiu) \
-    I(ANDI, 0b001100, "andi", MIPS_andi)    \
-    I(BEQ, 0b000100, "beq", MIPS_beq)       \
-    I(BGEZ, 0b000001, "bgez", MIPS_bgez)    \
-    I(BGTZ, 0b000111, "bgtz", MIPS_bgtz)    \
-    I(BLEZ, 0b000110, "blez", MIPS_blez)    \
-    I(BLTZ, 0b000001, "bltz", MIPS_bltz)    \
-    I(BNE, 0b000101, "bne", MIPS_bne)       \
-    I(LB, 0b100000, "lb", MIPS_lb)          \
-    I(LBU, 0b100100, "lbu", MIPS_lbu)       \
-    I(LH, 0b100001, "lh", MIPS_lh)          \
-    I(LHU, 0b100101, "lhu", MIPS_lhu)       \
-    I(LUI, 0b001111, "lui", MIPS_lui)       \
-    I(LW, 0b100011, "lw", MIPS_lw)          \
-    I(LWCL, 0b110001, "lwcl", MIPS_lwcl)    \
-    I(ORI, 0b001101, "ori", MIPS_ori)       \
-    I(SB, 0b101000, "sb", MIPS_sb)          \
-    I(SLTI, 0b001010, "slti", MIPS_slti)    \
-    I(SLTIU, 0b001011, "sltiu", MIPS_sltiu) \
-    I(SH, 0b101001, "sh", MIPS_sh)          \
-    I(SW, 0b101011, "sw", MIPS_sw)          \
-    I(SWCL, 0b111001, "swcl", MIPS_swcl)    \
+#define I_TYPE_TABLE                         \
+    I(ADDI, 0b001000, "addi", MIPS_addi)     \
+    I(ADDIU, 0b001001, "addiu", MIPS_addiu)  \
+    I(ANDI, 0b001100, "andi", MIPS_andi)     \
+    I(BEQ, 0b000100, "beq", MIPS_beq)        \
+    I(BGEZ, 0b000001, "bgez", MIPS_bgez)     \
+    I(BGTZ, 0b000111, "bgtz", MIPS_bgtz)     \
+    I(BLEZ, 0b000110, "blez", MIPS_blez)     \
+    /*I(BLTZ, 0b000001, "bltz", MIPS_bltz)*/ \
+    I(BNE, 0b000101, "bne", MIPS_bne)        \
+    I(LB, 0b100000, "lb", MIPS_lb)           \
+    I(LBU, 0b100100, "lbu", MIPS_lbu)        \
+    I(LH, 0b100001, "lh", MIPS_lh)           \
+    I(LHU, 0b100101, "lhu", MIPS_lhu)        \
+    I(LUI, 0b001111, "lui", MIPS_lui)        \
+    I(LW, 0b100011, "lw", MIPS_lw)           \
+    I(LWCL, 0b110001, "lwcl", MIPS_lwcl)     \
+    I(ORI, 0b001101, "ori", MIPS_ori)        \
+    I(SB, 0b101000, "sb", MIPS_sb)           \
+    I(SLTI, 0b001010, "slti", MIPS_slti)     \
+    I(SLTIU, 0b001011, "sltiu", MIPS_sltiu)  \
+    I(SH, 0b101001, "sh", MIPS_sh)           \
+    I(SW, 0b101011, "sw", MIPS_sw)           \
+    I(SWCL, 0b111001, "swcl", MIPS_swcl)     \
     I(XORI, 0b001110, "xori", MIPS_xori)
 
 /* J-type instructions */
@@ -197,23 +197,30 @@ char *REG_NUM_STR(int key)
  * R-type instructions are encoded by funct and have 0000000 opcode.
  */
 #define R(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
-typedef enum funct_t
+typedef enum R_t
 {
     R_TYPE_TABLE
-} funct_t;
+} R_t;
 #undef R
 
 /**
- * I-type and J-type instructions are encoded by opcode.
+ * I-type instructions are encoded by opcode.
  */
 #define I(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
-#define J(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
-
-typedef enum op_t
+typedef enum I_t
 {
-    I_TYPE_TABLE J_TYPE_TABLE
-} op_t;
+    I_TYPE_TABLE
+} I_t;
 #undef I
+
+/**
+ * I-type instructions are encoded by opcode.
+ */
+#define J(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
+typedef enum J_t
+{
+    J_TYPE_TABLE
+} J_t;
 #undef J
 
 /**
@@ -463,6 +470,10 @@ void free_CPU(CPU *cpu)
  *                              MIPS FUNCTIONS                                *
  ******************************************************************************/
 
+typedef void *R_funct_ptr_t(CPU *, REGISTER *, REGISTER *, REGISTER *);
+typedef void *I_funct_ptr_t(CPU *, REGISTER *, REGISTER *, int);
+typedef void *J_funct_ptr_t(CPU *, REGISTER *);
+
 void MIPS_addu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
 void MIPS_break(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
 void MIPS_div(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
@@ -611,15 +622,13 @@ void MIPS_lui(CPU *cpu, REGISTER *t, int I)
     t->value = I << 16;
 }
 
-/**
- * Emulate MIPS syscall.
- */
-void MIPS_syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *a3, REGISTER *v0)
+char *syscall(CPU *cpu)
 {
-    switch (v0->value)
+    char *str;
+    switch (cpu->reg[$v0]->value)
     {
     case 1:
-        printf("%d", a0->value);
+        snprintf(str, 8, "%d", cpu->reg[$a0]->value);
         break;
     // case 2:
     //     break;
@@ -646,12 +655,21 @@ void MIPS_syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *
         exit(EXIT_SUCCESS);
         break;
     case 11:
-        printf("%c", a0->value);
+        snprintf(str, 8, "%c", cpu->reg[$a0]->value);
         break;
     default:
-        fprintf(stderr, "ERROR: undefined register $v0 has %d\n", v0->value);
-        exit(EXIT_FAILURE);
+        snprintf(str, 8, "Unknown system call: %d\n", cpu->reg[$v0]->value);
     }
+
+    return str;
+}
+
+/**
+ * Emulate MIPS syscall.
+ */
+void MIPS_syscall(CPU *cpu)
+{
+    printf("%s", syscall(cpu));
 }
 
 /**
@@ -659,7 +677,7 @@ void MIPS_syscall(CPU *cpu, REGISTER *a0, REGISTER *a1, REGISTER *a2, REGISTER *
  * given a matching key.
  */
 #define R(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void *execute_R_instr(int key)
+R_funct_ptr_t *execute_R_instr(int key)
 {
     void *_R_FUNC[] = {R_TYPE_TABLE};
     return _R_FUNC[key];
@@ -671,7 +689,7 @@ void *execute_R_instr(int key)
  * given a matching key.
  */
 #define I(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void *execute_I_instr(int key)
+I_funct_ptr_t *execute_I_instr(int key)
 {
     void *_I_FUNC[] = {I_TYPE_TABLE};
     return _I_FUNC[key];
@@ -683,7 +701,7 @@ void *execute_I_instr(int key)
  * given a matching key.
  */
 #define J(NAME, NUM, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void *execute_J_instr(int key)
+J_funct_ptr_t *execute_J_instr(int key)
 {
     void *_J_FUNC[] = {J_TYPE_TABLE};
     return _J_FUNC[key];
@@ -714,6 +732,7 @@ int main(int argv, char *argc[])
 
     printf("Program\n");
     char line[MAX_LINE], buffer[MAX_LINE];
+    int buffer_inc = 0;
     for (int i = 0; fgets(line, sizeof(line), f); i++)
     {
         int opcode = (int)strtol(line, NULL, 16);
@@ -722,26 +741,32 @@ int main(int argv, char *argc[])
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
             if (instr.funct == SYSCALL)
+            {
                 printf("\t%d: %s\n", i, R_STR(instr.funct));
+                buffer_inc += snprintf(buffer + buffer_inc, 8, "%s", syscall(cpu));
+            }
             else
             {
                 printf("\t%d: %s\t%s %s %s\n", i, R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
-                // *execute_R_instr(instr.funct)(cpu, instr.rd, instr.rs, instr.rt);
+                execute_R_instr(instr.funct)(cpu, cpu->reg[instr.rd], cpu->reg[instr.rs], cpu->reg[instr.rt]);
             }
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
             printf("\t%d: %s\t%s %s %d\n", i, I_STR(instr.op), REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
+            execute_I_instr(instr.op)(cpu, cpu->reg[instr.rt], cpu->reg[instr.rs], instr.imm);
         }
         else if (is_J_FORMAT(opcode))
         {
             J_FORMAT instr = extract_J_FORMAT(opcode);
             printf("\t%d: %s\n", i, J_STR(instr.op));
+            execute_J_instr(instr.op)(cpu, cpu->reg[instr.addr]);
         }
     }
 
     printf("Output\n");
+    printf("%s", buffer);
 
     printf("Registers After Execution\n");
     for (int i = 0; i < NUM_REGISTERS; i++)
