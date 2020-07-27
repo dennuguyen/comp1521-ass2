@@ -1,5 +1,5 @@
 CC     = clang
-CFLAGS = -Werror -fsanitize=address
+CFLAGS = -Wall -Werror -fsanitize=address
 
 smips: smips.o
 	$(CC) $(CFLAGS) smips.c -o smips
