@@ -520,7 +520,7 @@ char *syscall(CPU *cpu)
     switch (cpu->reg[$v0]->value)
     {
     case 1:
-        snprintf(str, MAX_LINE, "%d", cpu->reg[$a0]->value);
+        sprintf(str, "%d", cpu->reg[$a0]->value);
         break;
     case 2:
         break;
@@ -547,10 +547,10 @@ char *syscall(CPU *cpu)
         exit(EXIT_SUCCESS);
         break;
     case 11:
-        snprintf(str, MAX_LINE, "%c", cpu->reg[$a0]->value);
+        sprintf(str, "%c", cpu->reg[$a0]->value);
         break;
     default:
-        snprintf(str, MAX_LINE, "Unknown system call: %d\n", cpu->reg[$v0]->value);
+        sprintf(str, "Unknown system call: %d\n", cpu->reg[$v0]->value);
     }
 
     return str;
