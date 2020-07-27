@@ -520,7 +520,7 @@ typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
 /* Syscall */
 char *syscall(CPU *cpu)
 {
-    char *str = malloc(sizeof(MAX_LINE));
+    char *str = malloc(MAX_LINE * sizeof(char));
     switch (cpu->reg[$v0]->value)
     {
     case 1:
