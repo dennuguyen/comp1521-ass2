@@ -32,6 +32,7 @@
 #define NUM_REGISTERS 34
 #define RAM_BUFFER 65536
 #define MAX_LINE 128
+#define SPACE 3
 
 /******************************************************************************
  *                                X MACROS                                    *
@@ -441,21 +442,6 @@ REGISTER *init_reg(reg_name_t name)
 }
 
 /**
- * Initialise the RAM.
- */
-int *init_RAM()
-{
-    int *ram = malloc(sizeof(RAM_BUFFER));
-    if (ram == NULL)
-    {
-        fprintf(stderr, "ERROR: Failed to allocate memory for RAM\n");
-        exit(EXIT_FAILURE);
-    }
-
-    return ram;
-}
-
-/**
  * Initialise the CPU.
  */
 CPU *init_CPU()
@@ -482,15 +468,6 @@ void free_reg(REGISTER *reg)
 {
     free(reg);
     reg = NULL;
-}
-
-/**
- * Destroy the RAM.
- */
-void free_RAM(int *ram)
-{
-    free(ram);
-    ram = NULL;
 }
 
 /**
@@ -728,7 +705,7 @@ void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value != 0)
-            printf("%s = %d\n", REG_NUM_STR(cpu->reg[i]->name), cpu->reg[i]->value);
+            printf("%s%*c= %d\n", REG_NUM_STR(cpu->reg[i]->name), 2, ' ', cpu->reg[i]->value);
 }
 
 /**
@@ -741,38 +718,42 @@ void parser(FILE *f, CPU *cpu, char *buffer)
     {
         int opcode = (int)strtol(line, NULL, 16);
 
+        printf("%*d: ", SPACE, i);
+
         if (is_P_FORMAT(opcode))
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
             if (instr.funct == SYSCALL)
             {
-                printf("\t%d: %s\n", i, P_STR(instr.funct));
+                printf("%s", P_STR(instr.funct));
                 buffer_inc += snprintf(buffer + buffer_inc, MAX_LINE, "%s", syscall(cpu));
             }
             else
             {
-                printf("\t%d: %s\t%s, %s, %s\n", i, P_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+                printf("%s %*s, %s, %s", P_STR(instr.funct), SPACE, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
                 execute_P_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
             }
         }
         else if (is_R_FORMAT(opcode))
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
-            printf("\t%d: %s\t%s, %s, %s\n", i, R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+            printf("%s %*s, %s, %s", R_STR(instr.funct), SPACE, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
             execute_R_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
-            printf("\t%d: %s\t%s, %s, %d\n", i, I_STR(instr.op), REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
+            printf("%s %*s, %s, %d", I_STR(instr.op), SPACE, REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
             execute_I_instr(instr.op)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], instr.imm);
         }
         else if (is_J_FORMAT(opcode))
         {
             J_FORMAT instr = extract_J_FORMAT(opcode);
-            printf("\t%d: %s\n", i, J_STR(instr.op));
+            printf("%s", J_STR(instr.op));
             execute_J_instr(instr.op)(cpu, cpu->reg[instr.addr]);
         }
+
+        printf("\n");
     }
 }
 
@@ -795,7 +776,6 @@ int main(int argv, char *argc[])
     }
 
     CPU *cpu = init_CPU();
-    // int *ram = init_RAM();
 
     printf("Program\n");
     char buffer[MAX_LINE];
@@ -808,7 +788,6 @@ int main(int argv, char *argc[])
     print_registers(cpu);
 
     free_CPU(cpu);
-    // free_RAM(ram);
     fclose(f);
 
     return EXIT_SUCCESS;
