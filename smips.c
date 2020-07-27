@@ -520,7 +520,7 @@ typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
 /* Syscall */
 char *syscall(CPU *cpu)
 {
-    char *str;
+    char *str = malloc(sizeof(MAX_LINE));
     switch (cpu->reg[$v0]->value)
     {
     case 1:
@@ -756,7 +756,9 @@ void parser(FILE *f, CPU *cpu, char *buffer)
             if (instr.funct == SYSCALL)
             {
                 printf("%s", P_STR(instr.funct));
-                buffer_inc += snprintf(buffer + buffer_inc, MAX_LINE, "%s", syscall(cpu));
+                char *str = syscall(cpu);
+                buffer_inc += snprintf(buffer + buffer_inc, MAX_LINE, "%s", str);
+                free(str);
             }
             else
             {
