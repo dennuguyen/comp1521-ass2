@@ -127,19 +127,14 @@
     /*I(BLTZ, 0b000001, "bltz", MIPS_bltz)*/ \
     I(BNE, 0b000101, "bne", MIPS_bne)        \
     I(LB, 0b100000, "lb", MIPS_lb)           \
-    I(LBU, 0b100100, "lbu", MIPS_lbu)        \
     I(LH, 0b100001, "lh", MIPS_lh)           \
-    I(LHU, 0b100101, "lhu", MIPS_lhu)        \
     I(LUI, 0b001111, "lui", MIPS_lui)        \
     I(LW, 0b100011, "lw", MIPS_lw)           \
-    I(LWCL, 0b110001, "lwcl", MIPS_lwcl)     \
     I(ORI, 0b001101, "ori", MIPS_ori)        \
     I(SB, 0b101000, "sb", MIPS_sb)           \
     I(SLTI, 0b001010, "slti", MIPS_slti)     \
-    I(SLTIU, 0b001011, "sltiu", MIPS_sltiu)  \
     I(SH, 0b101001, "sh", MIPS_sh)           \
     I(SW, 0b101011, "sw", MIPS_sw)           \
-    I(SWCL, 0b111001, "swcl", MIPS_swcl)     \
     I(XORI, 0b001110, "xori", MIPS_xori)
 
 /* J-type instructions */
@@ -157,6 +152,15 @@
 typedef __uint32_t word_t; // Size of word.
 typedef __uint16_t half_t; // Size of half.
 typedef __uint8_t byte_t;  // Size of byte.
+
+/**
+ * MIPS has Hi and Lo registers.
+ */
+typedef enum reg_bin_t
+{
+    LO,
+    HI
+} reg_bin_t;
 
 /**
  * MIPS has 32 registers numbers.
@@ -214,7 +218,7 @@ typedef enum I_t
 #undef I
 
 /**
- * I-type instructions are encoded by opcode.
+ * J-type instructions are encoded by opcode.
  */
 #define J(NAME, NUM, STR, FUNC_PTR) NAME = NUM,
 typedef enum J_t
@@ -381,6 +385,8 @@ typedef struct CPU
 {
     unsigned char pc;             // Program Counter
     REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
+    REGISTER *hi;                 // HI register
+    REGISTER *lo;                 // LO register
 } CPU;
 
 /**
@@ -429,6 +435,8 @@ CPU *init_CPU()
     }
 
     cpu->pc = 0;
+    cpu->hi = init_reg(HI);
+    cpu->lo = init_reg(LO);
 
     for (int i = 0; i < NUM_REGISTERS; i++)
         cpu->reg[i] = init_reg(i);
@@ -474,154 +482,99 @@ typedef void *R_funct_ptr_t(CPU *, REGISTER *, REGISTER *, REGISTER *);
 typedef void *I_funct_ptr_t(CPU *, REGISTER *, REGISTER *, int);
 typedef void *J_funct_ptr_t(CPU *, REGISTER *);
 
-void MIPS_addu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_break(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_div(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_divu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_jalr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_jr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_mfhi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_mflo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_mthi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_mtlo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_mult(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_multu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_nor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sll(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sllv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sltu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sra(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_srav(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_srl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_srlv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_subu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_xor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_addiu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_bgez(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_bgtz(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_blez(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_bltz(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lb(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lbu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lh(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lhu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lw(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_lwcl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sb(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sltiu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sh(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_sw(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_swcl(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_xori(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_j(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-void MIPS_jal(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) {}
-
-/**
- * Emulate MIPS add.
- */
-void MIPS_add(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+/* R-type instructions */
+void MIPS_add(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value + t->value; }
+void MIPS_and(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value & t->value; }
+void MIPS_addu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value + t->value; }
+void MIPS_break(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->pc = d->value; }
+void MIPS_div(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
-    d->value = s->value + t->value;
+    cpu->hi = d->value % s->value;
+    cpu->lo = d->value / s->value;
 }
-
-/**
- * Emulate MIPS and.
- */
-void MIPS_and(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_divu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
-    d->value = s->value & t->value;
+    cpu->hi = d->value % s->value;
+    cpu->lo = d->value / s->value;
 }
-
-/**
- * Emulate MIPS sub.
- */
-void MIPS_sub(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
+void MIPS_jalr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
 {
-    d->value = s->value - t->value;
+    d->value = cpu->pc;
+    cpu->pc = s->value;
 }
+void MIPS_jr(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->pc = d->value; }
+void MIPS_mfhi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = cpu->hi; }
+void MIPS_mflo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = cpu->lo; }
+void MIPS_mthi(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->hi = s->value; }
+void MIPS_mtlo(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->lo = s->value; }
+void MIPS_mul(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value * t->value; }
+void MIPS_mult(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->hi = cpu->lo = s->value * t->value; }
+void MIPS_multu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { cpu->hi = cpu->lo = s->value * t->value; }
+void MIPS_nor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = ~(s->value | t->value); }
+void MIPS_or(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value | t->value; }
+void MIPS_sll(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = s->value << I; }
+void MIPS_sllv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value << t->value; }
+void MIPS_slt(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value < t->value ? 1 : 0; }
+void MIPS_sltu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value < t->value; }
+void MIPS_sra(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value >> t->value; }
+void MIPS_srav(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value >> t->value; }
+void MIPS_srl(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = s->value >> I; }
+void MIPS_srlv(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value >> t->value; }
+void MIPS_sub(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value - t->value; }
+void MIPS_subu(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value - t->value; }
+void MIPS_syscall(CPU *cpu) { printf("%s", syscall(cpu)); }
+void MIPS_xor(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t) { d->value = s->value ^ t->value; }
 
-/**
- * Emulate MIPS or.
- */
-void MIPS_or(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
-{
-    d->value = s->value | t->value;
-}
-
-/**
- * Emulate MIPS slt.
- */
-void MIPS_slt(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
-{
-    d->value = s->value < t->value ? 1 : 0;
-}
-
-/**
- * Emulate MIPS mul.
- */
-void MIPS_mul(CPU *cpu, REGISTER *d, REGISTER *s, REGISTER *t)
-{
-    d->value = s->value * t->value;
-}
-
-/**
- * Emulate MIPS beq.
- */
+/* I-type instructions */
+void MIPS_addi(CPU *cpu, REGISTER *t, REGISTER *s, int I) { t->value = s->value + I; }
+void MIPS_addiu(CPU *cpu, REGISTER *t, REGISTER *s, int I) { t->value = s->value + I; }
+void MIPS_andi(CPU *cpu, REGISTER *t, REGISTER *s, int I) { t->value = s->value & I; }
 void MIPS_beq(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 {
     if (s->value == t->value)
         cpu->pc += I;
 }
-
-/**
- * Emulate MIPS bne.
- */
+void MIPS_bgez(CPU *cpu, REGISTER *d, REGISTER *s, int I)
+{
+    if (d->value >= 0)
+        cpu->pc += I;
+}
+void MIPS_bgtz(CPU *cpu, REGISTER *d, REGISTER *s, int I)
+{
+    if (d->value > 0)
+        cpu->pc += I;
+}
+void MIPS_blez(CPU *cpu, REGISTER *d, REGISTER *s, int I)
+{
+    if (d->value <= 0)
+        cpu->pc += I;
+}
+void MIPS_bltz(CPU *cpu, REGISTER *d, REGISTER *s, int I)
+{
+    if (d->value < 0)
+        cpu->pc += I;
+}
 void MIPS_bne(CPU *cpu, REGISTER *s, REGISTER *t, int I)
 {
     if (s->value != t->value)
         cpu->pc += I;
 }
+void MIPS_lb(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = *(byte_t *)(s->value); }
+void MIPS_lh(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = *(half_t *)(s->value); }
+void MIPS_lui(CPU *cpu, REGISTER *t, int I) { t->value = I << 16; }
+void MIPS_lw(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = *(word_t *)(s->value); }
+void MIPS_ori(CPU *cpu, REGISTER *t, REGISTER *s, int I) { t->value = s->value | I; }
+void MIPS_sb(CPU *cpu, REGISTER *d, REGISTER *s, int I) { *(byte_t *)s->value = d->value; }
+void MIPS_slti(CPU *cpu, REGISTER *t, REGISTER *s, int I) { t->value = s->value < I; }
+void MIPS_sh(CPU *cpu, REGISTER *d, REGISTER *s, int I) { *(half_t *)s->value = d->value; }
+void MIPS_sw(CPU *cpu, REGISTER *d, REGISTER *s, int I) { *(word_t *)s->value = d->value; }
+void MIPS_xori(CPU *cpu, REGISTER *d, REGISTER *s, int I) { d->value = s->value ^ I; }
 
-/**
- * Emulate MIPS addi.
- */
-void MIPS_addi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
-{
-    t->value = s->value + I;
-}
+/* J-type instructions */
+void MIPS_j(CPU *cpu, REGISTER *d) {}
+void MIPS_jal(CPU *cpu, REGISTER *d) {}
 
-/**
- * Emulate MIPS slti.
- */
-void MIPS_slti(CPU *cpu, REGISTER *t, REGISTER *s, int I)
-{
-    t->value = s->value < I;
-}
-
-/**
- * Emulate MIPS andi.
- */
-void MIPS_andi(CPU *cpu, REGISTER *t, REGISTER *s, int I)
-{
-    t->value = s->value & I;
-}
-
-/**
- * Emulate MIPS ori.
- */
-void MIPS_ori(CPU *cpu, REGISTER *t, REGISTER *s, int I)
-{
-    t->value = s->value | I;
-}
-
-/**
- * Emulate MIPS ori.
- */
-void MIPS_lui(CPU *cpu, REGISTER *t, int I)
-{
-    t->value = I << 16;
-}
-
+/* Syscall */
 char *syscall(CPU *cpu)
 {
     char *str = NULL;
@@ -662,14 +615,6 @@ char *syscall(CPU *cpu)
     }
 
     return str;
-}
-
-/**
- * Emulate MIPS syscall.
- */
-void MIPS_syscall(CPU *cpu)
-{
-    printf("%s", syscall(cpu));
 }
 
 /**
