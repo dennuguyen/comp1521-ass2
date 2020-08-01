@@ -733,13 +733,13 @@ void print_bits(__uint64_t value, int n_bits)
 }
 
 /**
- * Print non-zero registers.
+ * Print non-zero registers, $0 - $31
  */
 void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
-        if (cpu->reg[i]->value != 0)
-            printf("%s%*c= %d\n", REG_NUM_STR(cpu->reg[i]->name), 2, ' ', cpu->reg[i]->value);
+        if (cpu->reg[i]->value != 0 && $0 <= i && i <= $31)
+            printf("%-4s = %d\n", REG_NUM_STR(cpu->reg[i]->name), 2, cpu->reg[i]->value);
 }
 
 /**
