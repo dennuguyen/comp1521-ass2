@@ -32,8 +32,7 @@
 #include <string.h>
 
 #define NUM_REGISTERS 34
-#define RAM_BUFFER 65536
-#define MAX_LINE 128
+#define BUFFER 65536
 
 /******************************************************************************
  *                                X MACROS                                    *
@@ -519,13 +518,14 @@ typedef void *I_funct_ptr_t(CPU *, REGISTER *rs, REGISTER *rt, int imm);
 typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
 
 /* Syscall */
-char *syscall(CPU *cpu)
+char *syscall(CPU *cpu, int *size)
 {
-    char *str = malloc(MAX_LINE * sizeof(char));
+    char *str = malloc(BUFFER * sizeof(char));
     switch (cpu->reg[$v0]->value)
     {
     case 1:
-        sprintf(str, "%d", cpu->reg[$a0]->value);
+        *size = 33;
+        snprintf(str, 33, "%d", cpu->reg[$a0]->value);
         break;
     // case 2:
     //     sprintf(str, "%f", cpu->reg[$f12]->value);
@@ -538,6 +538,7 @@ char *syscall(CPU *cpu)
     //     break;
     case 5:
         scanf("%d", &(cpu->reg[$v0]->value));
+        *size = sizeof(int);
         break;
     // case 6:
     //     scanf("%f", &(cpu->reg[$v0]->value));
@@ -555,10 +556,12 @@ char *syscall(CPU *cpu)
         exit(EXIT_SUCCESS);
         break;
     case 11:
-        sprintf(str, "%c", cpu->reg[$a0]->value);
+        *size = 2;
+        snprintf(str, *size, "%c", cpu->reg[$a0]->value);
         break;
     default:
-        sprintf(str, "Unknown system call: %d\n", cpu->reg[$v0]->value);
+        *size = 24;
+        snprintf(str, 24, "Unknown system call: %d\n", cpu->reg[$v0]->value);
     }
 
     return str;
@@ -662,7 +665,7 @@ void MIPS_mul(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int
     MIPS_mult(cpu, rs, rt, rd, shamt, funct);
     MIPS_mflo(cpu, rs, rt, rd, shamt, funct);
 }
-void MIPS_syscall(CPU *cpu) { printf("%s", syscall(cpu)); }
+void MIPS_syscall(CPU *cpu) { printf("%s", syscall(cpu, NULL)); }
 
 /**
  * Returns the function pointer to an R-type instruction from R_TYPE_TABLE
@@ -744,12 +747,12 @@ void print_registers(CPU *cpu)
  */
 void parser(FILE *f, CPU *cpu, char *buffer)
 {
-    char line[MAX_LINE];
-    for (int i = 0, buffer_inc = 0; fgets(line, sizeof(line), f); i++)
+    char line[BUFFER];
+    for (int i = 0; fgets(line, sizeof(line), f); i++)
     {
         int opcode = (int)strtol(line, NULL, 16);
 
-        printf("%*d: ", 2, i);
+        printf("%3d: ", i);
 
         if (is_P_FORMAT(opcode))
         {
@@ -757,26 +760,33 @@ void parser(FILE *f, CPU *cpu, char *buffer)
             if (instr.funct == SYSCALL)
             {
                 printf("%s", P_STR(instr.funct));
-                char *str = syscall(cpu);
-                buffer_inc += snprintf(buffer + buffer_inc, MAX_LINE, "%s", str);
+                int size = 0;
+                char *str = syscall(cpu, &size);
+                // printf("\n%d '%s'\n", i, str);
+                strncat(buffer, str, size);
                 free(str);
             }
             else
             {
-                printf("%s %*s, %s, %s", P_STR(instr.funct), 4, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+                printf("%-4s %s, %s, %s", P_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
                 execute_P_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
             }
         }
         else if (is_R_FORMAT(opcode))
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
-            printf("%s %*s, %s, %s", R_STR(instr.funct), 4, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+            printf("%-4s %s, %s, %s", R_STR(instr.funct), REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
             execute_R_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
-            printf("%s %*s, %s, %d", I_STR(instr.op), 4, REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
+            if (instr.op == BEQ || instr.op == BNE)
+                printf("%-4s %s, %s, %d", I_STR(instr.op), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt), instr.imm);
+            else if (instr.op == LUI)
+                printf("%-4s %s, %d", I_STR(instr.op), REG_NUM_STR(instr.rt), instr.imm);
+            else
+                printf("%-4s %s, %s, %d", I_STR(instr.op), REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
             execute_I_instr(instr.op)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], instr.imm);
         }
         else if (is_J_FORMAT(opcode))
@@ -811,7 +821,7 @@ int main(int argv, char *argc[])
     CPU *cpu = init_CPU();
 
     printf("Program\n");
-    char buffer[MAX_LINE];
+    char buffer[BUFFER] = "";
     parser(f, cpu, buffer);
 
     printf("Output\n");
