@@ -739,7 +739,7 @@ void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value != 0 && $0 <= i && i <= $31)
-            printf("%-4s = %d\n", REG_NUM_STR(cpu->reg[i]->name), cpu->reg[i]->value);
+            printf("%-3s = %d\n", REG_NUM_STR(cpu->reg[i]->name), cpu->reg[i]->value);
 }
 
 /**
