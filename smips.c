@@ -22,6 +22,8 @@
  * TODO:
  *  - branching functions
  *  - check if unsigned functions are correct
+ *  - error handling
+ *  - correct output format
  */
 
 #include <stdbool.h>
@@ -32,7 +34,6 @@
 #define NUM_REGISTERS 34
 #define RAM_BUFFER 65536
 #define MAX_LINE 128
-#define SPACE 3
 
 /******************************************************************************
  *                                X MACROS                                    *
@@ -748,7 +749,7 @@ void parser(FILE *f, CPU *cpu, char *buffer)
     {
         int opcode = (int)strtol(line, NULL, 16);
 
-        printf("%*d: ", SPACE, i);
+        printf("%*d: ", 2, i);
 
         if (is_P_FORMAT(opcode))
         {
@@ -762,20 +763,20 @@ void parser(FILE *f, CPU *cpu, char *buffer)
             }
             else
             {
-                printf("%s %*s, %s, %s", P_STR(instr.funct), SPACE, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+                printf("%s %*s, %s, %s", P_STR(instr.funct), 4, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
                 execute_P_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
             }
         }
         else if (is_R_FORMAT(opcode))
         {
             R_FORMAT instr = extract_R_FORMAT(opcode);
-            printf("%s %*s, %s, %s", R_STR(instr.funct), SPACE, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
+            printf("%s %*s, %s, %s", R_STR(instr.funct), 4, REG_NUM_STR(instr.rd), REG_NUM_STR(instr.rs), REG_NUM_STR(instr.rt));
             execute_R_instr(instr.funct)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], cpu->reg[instr.rd], instr.shamt, instr.funct);
         }
         else if (is_I_FORMAT(opcode))
         {
             I_FORMAT instr = extract_I_FORMAT(opcode);
-            printf("%s %*s, %s, %d", I_STR(instr.op), SPACE, REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
+            printf("%s %*s, %s, %d", I_STR(instr.op), 4, REG_NUM_STR(instr.rt), REG_NUM_STR(instr.rs), instr.imm);
             execute_I_instr(instr.op)(cpu, cpu->reg[instr.rs], cpu->reg[instr.rt], instr.imm);
         }
         else if (is_J_FORMAT(opcode))
