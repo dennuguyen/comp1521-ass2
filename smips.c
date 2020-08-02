@@ -47,10 +47,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUM_REGISTERS 34
-#define BUFFER 65536
+#define NUM_REGISTERS 60
+#define BUFFER 4096
 #define MAX_INSTRUCTIONS 1000
-#define MAX_MEMORY 64000
+#define MAX_MEMORY 65536
 
 /******************************************************************************
  *                                X MACROS                                    *
@@ -536,13 +536,20 @@ char *P_STR(int key)
  *                               HARDWARE                                     *
  ******************************************************************************/
 
-typedef __int32_t reg_t; // Size of a MIPS register is 32 bits.
+/**
+ * @union reg_t
+ * @brief Registers are initialised to either wd or fl which are `reg_t`.
+ */
+typedef union reg_t
+{
+    __int32_t wd; // Size of a MIPS register is 32 bits.
+    _Float32 fl;  // Size of a MIPS register is 32 bits.
+} reg_t;
 
 /**
  * @struct REGISTER
  * @brief A MIPS register has a `name` and `value` of size 'reg_t'.
  */
-
 typedef struct REGISTER
 {
     reg_name_t name; // Name of register
@@ -576,7 +583,11 @@ REGISTER *init_reg(reg_name_t name)
     }
 
     reg->name = name;
-    reg->value = 0;
+
+    if ($0 <= name && name <= HI)
+        reg->value.wd = 0;
+    else
+        reg->value.fl = 0.0;
 
     return reg;
 }
@@ -650,23 +661,26 @@ typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
 char *syscall(CPU *cpu, int *size)
 {
     char *str = malloc(BUFFER * sizeof(char));
-    switch (cpu->reg[$v0]->value)
+    switch (cpu->reg[$v0]->value.wd)
     {
     case 1:
         *size = 33;
-        snprintf(str, 33, "%d", cpu->reg[$a0]->value);
+        snprintf(str, 33, "%d", cpu->reg[$a0]->value.wd);
         break;
-    // case 2:
-    //     sprintf(str, "%f", cpu->reg[$f12]->value);
-    //     break;
-    // case 3:
-    //     sprintf(str, "%lf", cpu->reg[$f12]->value);
-    //     break;
+    case 2:
+        *size = 33;
+        snprintf(str, 33, "%f", cpu->reg[$f12]->value.fl);
+        break;
+    case 3:
+        *size = 66;
+        snprintf(str, 33, "%f", cpu->reg[$f12]->value.fl);
+        snprintf(str, 33, "%f", cpu->reg[$f14]->value.fl);
+        break;
     // case 4:
     //     sprintf(str, "%s", cpu->reg[$a0]->value);
     //     break;
     case 5:
-        scanf("%d", &(cpu->reg[$v0]->value));
+        scanf("%d", &(cpu->reg[$v0]->value.wd));
         *size = sizeof(int);
         break;
     // case 6:
@@ -682,17 +696,16 @@ char *syscall(CPU *cpu, int *size)
     //     realloc(cpu->reg[$v0]->value, cpu->reg[$a0]->value);
     //     break;
     case 10:
-        // exit(EXIT_SUCCESS);
-        cpu->pc = MAX_INSTRUCTIONS; // Reference to 1521 smips behaviour
+        cpu->pc = MAX_INSTRUCTIONS;
         break;
     case 11:
         *size = 2;
-        snprintf(str, *size, "%c", cpu->reg[$a0]->value);
+        snprintf(str, *size, "%c", cpu->reg[$a0]->value.wd);
         break;
     default:
         *size = 32;
-        snprintf(str, 32, "Unknown system call: %d\n", cpu->reg[$v0]->value);
-        cpu->pc = MAX_INSTRUCTIONS; // Reference to 1521 smips behaviour
+        snprintf(str, 32, "Unknown system call: %d\n", cpu->reg[$v0]->value.wd);
+        cpu->pc = MAX_INSTRUCTIONS;
     }
 
     return str;
@@ -700,248 +713,248 @@ char *syscall(CPU *cpu, int *size)
 
 void MIPS_add(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value + rt->value;
+    rd->value.wd = rs->value.wd + rt->value.wd;
 }
 
 void MIPS_addi(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value + imm;
+    rt->value.wd = rs->value.wd + imm;
 }
 
 void MIPS_addiu(CPU *cpu, REGISTER *rs, REGISTER *rt, unsigned int imm)
 {
-    rt->value = rs->value + imm;
+    rt->value.wd = rs->value.wd + imm;
 }
 
 void MIPS_and(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value & rt->value;
+    rd->value.wd = rs->value.wd & rt->value.wd;
 }
 
 void MIPS_andi(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value & imm;
+    rt->value.wd = rs->value.wd & imm;
 }
 
 void MIPS_addu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value + rt->value;
+    rd->value.wd = rs->value.wd + rt->value.wd;
 }
 
 void MIPS_beq(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value == rt->value)
+    if (rs->value.wd == rt->value.wd)
         cpu->pc += imm;
 }
 
 void MIPS_bgez(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value >= 0)
+    if (rs->value.wd >= 0)
         cpu->pc += imm;
 }
 
 void MIPS_bgtz(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value > 0)
+    if (rs->value.wd > 0)
         cpu->pc += imm;
 }
 
 void MIPS_blez(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value <= 0)
+    if (rs->value.wd <= 0)
         cpu->pc += imm;
 }
 
 void MIPS_bltz(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value < 0)
+    if (rs->value.wd < 0)
         cpu->pc += imm;
 }
 
 void MIPS_bne(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    if (rs->value != rt->value)
+    if (rs->value.wd != rt->value.wd)
         cpu->pc += imm;
 }
 
 void MIPS_break(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->pc = rd->value;
+    cpu->pc = rd->value.wd;
 }
 
 void MIPS_div(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->reg[HI]->value = rs->value % rt->value;
-    cpu->reg[LO]->value = rs->value / rt->value;
+    cpu->reg[HI]->value.wd = rs->value.wd % rt->value.wd;
+    cpu->reg[LO]->value.wd = rs->value.wd / rt->value.wd;
 }
 
 void MIPS_divu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd)
 {
-    cpu->reg[HI]->value = rs->value % rt->value;
-    cpu->reg[LO]->value = rs->value / rt->value;
+    cpu->reg[HI]->value.wd = rs->value.wd % rt->value.wd;
+    cpu->reg[LO]->value.wd = rs->value.wd / rt->value.wd;
 }
 
-void MIPS_j(CPU *cpu, REGISTER *addr) {}
+void MIPS_j(CPU *cpu, REGISTER *addr) {} // TODO:
 
-void MIPS_jal(CPU *cpu, REGISTER *addr) {}
+void MIPS_jal(CPU *cpu, REGISTER *addr) {} // TODO:
 
 void MIPS_jalr(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd)
 {
-    rd->value = cpu->pc;
-    cpu->pc = rs->value;
+    rd->value.wd = cpu->pc;
+    cpu->pc = rs->value.wd;
 }
 
 void MIPS_jr(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->pc = rs->value;
+    cpu->pc = rs->value.wd;
 }
 
 void MIPS_lb(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value;
+    rt->value.wd = rs->value.wd;
 }
 
 void MIPS_lh(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value;
+    rt->value.wd = rs->value.wd;
 }
 
 void MIPS_lui(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = imm << 16U;
+    rt->value.wd = imm << 16U;
 }
 
 void MIPS_lw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value;
+    rt->value.wd = rs->value.wd;
 }
 
 void MIPS_mfhi(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = cpu->reg[HI]->value;
+    rd->value.wd = cpu->reg[HI]->value.wd;
 }
 
 void MIPS_mflo(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = cpu->reg[LO]->value;
+    rd->value.wd = cpu->reg[LO]->value.wd;
 }
 
 void MIPS_mthi(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->reg[HI]->value = rd->value;
+    cpu->reg[HI]->value.wd = rd->value.wd;
 }
 
 void MIPS_mtlo(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->reg[LO]->value = rd->value;
+    cpu->reg[LO]->value.wd = rd->value.wd;
 }
 
 void MIPS_mult(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->reg[HI]->value = cpu->reg[LO]->value = rs->value * rt->value;
+    cpu->reg[HI]->value.wd = cpu->reg[LO]->value.wd = rs->value.wd * rt->value.wd;
 }
 
 void MIPS_multu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    cpu->reg[HI]->value = cpu->reg[LO]->value = rs->value * rt->value;
+    cpu->reg[HI]->value.wd = cpu->reg[LO]->value.wd = rs->value.wd * rt->value.wd;
 }
 
 // TODO: prototype def
 void MIPS_mul(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    // rd->value = rs->value * rt->value;
+    // rd->value.wd = rs->value.wd * rt->value.wd;
     MIPS_mult(cpu, rs, rt, rd, shamt, funct);
     MIPS_mflo(cpu, rs, rt, rd, shamt, funct);
 }
 
 void MIPS_nor(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = ~(rs->value | rt->value);
+    rd->value.wd = ~(rs->value.wd | rt->value.wd);
 }
 
 void MIPS_or(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value | rt->value;
+    rd->value.wd = rs->value.wd | rt->value.wd;
 }
 
 void MIPS_ori(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value | imm;
+    rt->value.wd = rs->value.wd | imm;
 }
 
 void MIPS_sb(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rs->value = rt->value;
+    rs->value.wd = rt->value.wd;
 }
 
 void MIPS_sh(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rs->value = rt->value;
+    rs->value.wd = rt->value.wd;
 }
 
 void MIPS_sll(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rt->value << shamt;
+    rd->value.wd = rt->value.wd << shamt;
 }
 
 void MIPS_sllv(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rt->value << rs->value;
+    rd->value.wd = rt->value.wd << rs->value.wd;
 }
 
 void MIPS_slt(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value < rt->value ? 1 : 0;
+    rd->value.wd = rs->value.wd < rt->value.wd ? 1 : 0;
 }
 
 void MIPS_slti(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value < imm ? 1 : 0;
+    rt->value.wd = rs->value.wd < imm ? 1 : 0;
 }
 
 void MIPS_sltiu(CPU *cpu, REGISTER *rs, REGISTER *rt, unsigned int imm)
 {
-    rt->value = rs->value < imm ? 1 : 0;
+    rt->value.wd = rs->value.wd < imm ? 1 : 0;
 }
 
 void MIPS_sltu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value < rt->value ? 1 : 0;
+    rd->value.wd = rs->value.wd < rt->value.wd ? 1 : 0;
 }
 
 void MIPS_sra(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rt->value >> shamt;
+    rd->value.wd = rt->value.wd >> shamt;
 }
 
 void MIPS_srav(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rt->value >> rs->value;
+    rd->value.wd = rt->value.wd >> rs->value.wd;
 }
 
 void MIPS_srl(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, unsigned int shamt, int funct)
 {
-    rd->value = rs->value >> shamt;
+    rd->value.wd = rs->value.wd >> shamt;
 }
 
 void MIPS_srlv(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, unsigned int shamt, int funct)
 {
-    rd->value = rt->value >> rs->value;
+    rd->value.wd = rt->value.wd >> rs->value.wd;
 }
 
 void MIPS_sub(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value - rt->value;
+    rd->value.wd = rs->value.wd - rt->value.wd;
 }
 
 void MIPS_subu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    rd->value = rs->value - rt->value;
+    rd->value.wd = rs->value.wd - rt->value.wd;
 }
 
 void MIPS_sw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rs->value = rt->value;
+    rs->value.wd = rt->value.wd;
 }
 
 void MIPS_syscall(CPU *cpu)
@@ -951,12 +964,12 @@ void MIPS_syscall(CPU *cpu)
 
 void MIPS_xor(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd)
 {
-    rd->value = rs->value ^ rt->value;
+    rd->value.wd = rs->value.wd ^ rt->value.wd;
 }
 
 void MIPS_xori(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
-    rt->value = rs->value ^ imm;
+    rt->value.wd = rs->value.wd ^ imm;
 }
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
@@ -1047,10 +1060,10 @@ void print_bits(__uint64_t value, int n_bits)
 void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
-        if (cpu->reg[i]->value != 0 && $0 <= i && i <= $31)
-            printf("%-3s = %d\n",
-                   REG_NUM_STR(cpu->reg[i]->name),
-                   cpu->reg[i]->value);
+        // if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31)
+        printf("%-3s = %d\n",
+               REG_NUM_STR(cpu->reg[i]->name),
+               cpu->reg[i]->value.wd);
 }
 
 /**
@@ -1178,7 +1191,7 @@ void processes(CPU *cpu, int instr_code, char *buffer)
     }
 
     // Clean up registers
-    cpu->reg[$zero]->value = 0;
+    cpu->reg[$zero]->value.wd = 0;
 }
 
 /**
