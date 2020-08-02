@@ -28,12 +28,13 @@
  * 
  * Instruction format: 000000 00000 00000 00000 00000 000000
  * Resources:
- *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html
- *  - https://opencores.org/projects/plasma/opcodes
- *  - https://www.slideshare.net/tagbagtroj/mips-opcodes
- *  - http://www.drdobbs.com/the-new-c-x-macros/184401387
- *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf
- *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf GOOD:READ:
+ *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html instruction formatting
+ *  - https://opencores.org/projects/plasma/opcodes opcodes
+ *  - https://www.slideshare.net/tagbagtroj/mips-opcodes MIPS opcodes
+ *  - http://www.drdobbs.com/the-new-c-x-macros/184401387 X macros
+ *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf MIPS reference
+ *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf SPIM manual
+ *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html floating point instructions
  * 
  * 
  * @todo
@@ -46,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define NUM_REGISTERS 60
 #define BUFFER 4096
@@ -650,67 +652,6 @@ typedef void *R_funct_ptr_t(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int
 typedef void *I_funct_ptr_t(CPU *, REGISTER *rs, REGISTER *rt, int imm);
 typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
 
-/**
- * @brief Emulation of syscall function which checks `$v0` to set syscall
- * behaviour.
- * 
- * @param cpu Pointer to instantiation of CPU
- * @param size Size of buffer string to be returned
- * @return char* 
- */
-char *syscall(CPU *cpu, int *size)
-{
-    char *str = malloc(BUFFER * sizeof(char));
-    switch (cpu->reg[$v0]->value.wd)
-    {
-    case 1:
-        *size = 33;
-        snprintf(str, 33, "%d", cpu->reg[$a0]->value.wd);
-        break;
-    case 2:
-        *size = 33;
-        snprintf(str, 33, "%f", cpu->reg[$f12]->value.fl);
-        break;
-    case 3:
-        *size = 66;
-        snprintf(str, 33, "%f", cpu->reg[$f12]->value.fl);
-        snprintf(str, 33, "%f", cpu->reg[$f14]->value.fl);
-        break;
-    // case 4:
-    //     sprintf(str, "%s", cpu->reg[$a0]->value);
-    //     break;
-    case 5:
-        scanf("%d", &(cpu->reg[$v0]->value.wd));
-        *size = sizeof(int);
-        break;
-    // case 6:
-    //     scanf("%f", &(cpu->reg[$v0]->value));
-    //     break;
-    // case 7:
-    //     scanf("%lf", &(cpu->reg[$v0]->value));
-    //     break;
-    // case 8:
-    //     fgets(cpu->reg[$a0]->value, cpu->reg[$a1]->value, stdin);
-    //     break;
-    // case 9:
-    //     realloc(cpu->reg[$v0]->value, cpu->reg[$a0]->value);
-    //     break;
-    case 10:
-        cpu->pc = MAX_INSTRUCTIONS;
-        break;
-    case 11:
-        *size = 2;
-        snprintf(str, *size, "%c", cpu->reg[$a0]->value.wd);
-        break;
-    default:
-        *size = 32;
-        snprintf(str, 32, "Unknown system call: %d\n", cpu->reg[$v0]->value.wd);
-        cpu->pc = MAX_INSTRUCTIONS;
-    }
-
-    return str;
-}
-
 void MIPS_add(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
     rd->value.wd = rs->value.wd + rt->value.wd;
@@ -957,9 +898,57 @@ void MIPS_sw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
     rs->value.wd = rt->value.wd;
 }
 
-void MIPS_syscall(CPU *cpu)
+/**
+ * @brief Emulation of syscall function which checks `$v0` to set syscall
+ * behaviour and arguments `$a0`, `$a1`, `$a2`, `$a3`.
+ * 
+ * @param cpu Pointer to instantiation of CPU
+ */
+void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
-    printf("%s", syscall(cpu, NULL));
+    switch (cpu->reg[$v0]->value.wd)
+    {
+    case 1:
+        printf("%d", cpu->reg[$a0]->value.wd);
+        break;
+    case 2:
+        printf("%f", cpu->reg[$f12]->value.fl);
+        break;
+    case 3:
+        printf("%f", cpu->reg[$f12]->value.fl);
+        printf("%f", cpu->reg[$f13]->value.fl);
+        break;
+    case 4:
+        printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
+        break;
+    case 5:
+        scanf("%d", &(cpu->reg[$v0]->value.wd));
+        break;
+    case 6:
+        scanf("%f", &(cpu->reg[$f0]->value.fl));
+        break;
+    case 7:
+        scanf("%f", &(cpu->reg[$f0]->value.fl));
+        scanf("%f", &(cpu->reg[$f1]->value.fl));
+        break;
+    case 8:
+        fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
+              cpu->reg[$a1]->value.wd,
+              stdin);
+        break;
+    case 9:
+        cpu->reg[$v0]->value.wd = (int)sbrk(cpu->reg[$a0]->value.wd);
+        break;
+    case 10:
+        cpu->pc = MAX_INSTRUCTIONS;
+        break;
+    case 11:
+        printf("%c", cpu->reg[$a0]->value.wd);
+        break;
+    default:
+        printf("Unknown system call: %d\n", cpu->reg[$v0]->value.wd);
+        cpu->pc = MAX_INSTRUCTIONS;
+    }
 }
 
 void MIPS_xor(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd)
@@ -1060,10 +1049,10 @@ void print_bits(__uint64_t value, int n_bits)
 void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
-        // if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31)
-        printf("%-3s = %d\n",
-               REG_NUM_STR(cpu->reg[i]->name),
-               cpu->reg[i]->value.wd);
+        if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31) // 1521 spim
+            printf("%-3s = %d\n",
+                   REG_NUM_STR(cpu->reg[i]->name),
+                   cpu->reg[i]->value.wd);
 }
 
 /**
@@ -1138,30 +1127,19 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
  * 
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
- * @param buffer Buffer to store decoded MIPS instruction
  */
-void processes(CPU *cpu, int instr_code, char *buffer)
+void processes(CPU *cpu, int instr_code)
 {
     if (is_P_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
-        if (instr.funct == SYSCALL)
-        {
-            int size = 0;
-            char *str = syscall(cpu, &size);
-            strncat(buffer, str, size);
-            free(str);
-        }
-        else
-        {
-            P_FUNCT_PTR(instr.funct)
-            (cpu,
-             cpu->reg[instr.rs],
-             cpu->reg[instr.rt],
-             cpu->reg[instr.rd],
-             instr.shamt,
-             instr.funct);
-        }
+        P_FUNCT_PTR(instr.funct)
+        (cpu,
+         cpu->reg[instr.rs],
+         cpu->reg[instr.rt],
+         cpu->reg[instr.rd],
+         instr.shamt,
+         instr.funct);
     }
     else if (is_R_FORMAT(instr_code))
     {
@@ -1200,9 +1178,8 @@ void processes(CPU *cpu, int instr_code, char *buffer)
  * 
  * @param f Stream of encoded MIPS instructions
  * @param cpu Pointer to instantiation of CPU
- * @param buffer Buffer to store decoded MIPS instruction
  */
-void hexadecimal_parser(FILE *f, CPU *cpu, char *buffer)
+void hexadecimal_parser(FILE *f, CPU *cpu)
 {
     char line[BUFFER];
 
@@ -1218,10 +1195,12 @@ void hexadecimal_parser(FILE *f, CPU *cpu, char *buffer)
         cpu->memory[i] = instr_code;
     }
 
+    printf("Output\n");
+
     // Execute the program loaded in memory
     for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS; cpu->pc++)
     {
-        processes(cpu, cpu->memory[cpu->pc], buffer);
+        processes(cpu, cpu->memory[cpu->pc]);
     }
 }
 
@@ -1250,11 +1229,7 @@ int main(int argv, char *argc[])
     CPU *cpu = init_CPU();
 
     printf("Program\n");
-    char buffer[BUFFER] = "";
-    hexadecimal_parser(f, cpu, buffer);
-
-    printf("Output\n");
-    fprintf(stdout, "%s", buffer);
+    hexadecimal_parser(f, cpu);
 
     printf("Registers After Execution\n");
     print_registers(cpu);
