@@ -1128,7 +1128,7 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
  */
-void processes(CPU *cpu, int instr_code)
+bool processes(CPU *cpu, int instr_code)
 {
     bool jumped = false;
     if (is_P_FORMAT(instr_code))
@@ -1175,9 +1175,7 @@ void processes(CPU *cpu, int instr_code)
     // Clean up registers
     cpu->reg[$zero]->value.wd = 0;
 
-    // Increment program counter
-    if (!jumped)
-        cpu->pc++;
+    return jumped;
 }
 
 /**
@@ -1207,9 +1205,8 @@ void hexadecimal_parser(FILE *f, CPU *cpu)
 
     // Execute the program loaded in memory
     for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS;)
-    {
-        processes(cpu, cpu->memory[cpu->pc]);
-    }
+        if (!processes(cpu, cpu->memory[cpu->pc]))
+            cpu->pc++;
 }
 
 /**
