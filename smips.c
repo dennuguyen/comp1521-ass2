@@ -682,7 +682,8 @@ char *syscall(CPU *cpu, int *size)
     //     realloc(cpu->reg[$v0]->value, cpu->reg[$a0]->value);
     //     break;
     case 10:
-        exit(EXIT_SUCCESS);
+        // exit(EXIT_SUCCESS);
+        cpu->pc = MAX_INSTRUCTIONS; // Reference to 1521 smips behaviour
         break;
     case 11:
         *size = 2;
