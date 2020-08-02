@@ -685,37 +685,37 @@ void MIPS_addu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, in
 void MIPS_beq(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd == rt->value.wd)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_bgez(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd >= 0)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_bgtz(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd > 0)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_blez(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd <= 0)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_bltz(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd < 0)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_bne(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 {
     if (rs->value.wd != rt->value.wd)
-        cpu->pc += imm;
+        cpu->pc += imm - 1;
 }
 
 void MIPS_break(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
@@ -735,7 +735,10 @@ void MIPS_divu(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd)
     cpu->reg[LO]->value.wd = rs->value.wd / rt->value.wd;
 }
 
-void MIPS_j(CPU *cpu, REGISTER *addr) {} // TODO:
+void MIPS_j(CPU *cpu, REGISTER *addr)
+{
+    cpu->pc = addr->value.wd;
+}
 
 void MIPS_jal(CPU *cpu, REGISTER *addr) {} // TODO:
 
@@ -1128,9 +1131,8 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
  */
-bool processes(CPU *cpu, int instr_code)
+void processes(CPU *cpu, int instr_code)
 {
-    bool jumped = false;
     if (is_P_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
@@ -1161,9 +1163,6 @@ bool processes(CPU *cpu, int instr_code)
          cpu->reg[instr.rs],
          cpu->reg[instr.rt],
          instr.imm);
-
-        if (instr.op == BEQ || instr.op == BNE)
-            jumped = true;
     }
     else if (is_J_FORMAT(instr_code))
     {
@@ -1174,8 +1173,6 @@ bool processes(CPU *cpu, int instr_code)
 
     // Clean up registers
     cpu->reg[$zero]->value.wd = 0;
-
-    return jumped;
 }
 
 /**
@@ -1204,9 +1201,8 @@ void hexadecimal_parser(FILE *f, CPU *cpu)
     printf("Output\n");
 
     // Execute the program loaded in memory
-    for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS;)
-        if (!processes(cpu, cpu->memory[cpu->pc]))
-            cpu->pc++;
+    for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS; cpu->pc++)
+        processes(cpu, cpu->memory[cpu->pc]);
 }
 
 /**
