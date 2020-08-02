@@ -1041,7 +1041,9 @@ void print_registers(CPU *cpu)
 {
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value != 0 && $0 <= i && i <= $31)
-            printf("%-3s = %d\n", REG_NUM_STR(cpu->reg[i]->name), cpu->reg[i]->value);
+            printf("%-3s = %d\n",
+                   REG_NUM_STR(cpu->reg[i]->name),
+                   cpu->reg[i]->value);
 }
 
 /**
@@ -1066,11 +1068,13 @@ void print_instruction_by_format(CPU *cpu, int instr_code, char *buffer)
             free(str);
         }
         else
+        {
             printf("%-4s %s, %s, %s",
                    P_STR(instr.funct),
                    REG_NUM_STR(instr.rd),
                    REG_NUM_STR(instr.rs),
                    REG_NUM_STR(instr.rt));
+        }
     }
     else if (is_R_FORMAT(instr_code))
     {
@@ -1085,21 +1089,27 @@ void print_instruction_by_format(CPU *cpu, int instr_code, char *buffer)
     {
         I_FORMAT instr = extract_I_FORMAT(instr_code);
         if (instr.op == BEQ || instr.op == BNE)
+        {
             printf("%-4s %s, %s, %d",
                    I_STR(instr.op),
                    REG_NUM_STR(instr.rs),
                    REG_NUM_STR(instr.rt), instr.imm);
+        }
         else if (instr.op == LUI)
+        {
             printf("%-4s %s, %d",
                    I_STR(instr.op),
                    REG_NUM_STR(instr.rt),
                    instr.imm);
+        }
         else
+        {
             printf("%-4s %s, %s, %d",
                    I_STR(instr.op),
                    REG_NUM_STR(instr.rt),
                    REG_NUM_STR(instr.rs),
                    instr.imm);
+        }
     }
     else if (is_J_FORMAT(instr_code))
     {
@@ -1120,6 +1130,7 @@ void processes(CPU *cpu, int instr_code)
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         if (instr.funct != SYSCALL)
+        {
             P_FUNCT_PTR(instr.funct)
             (cpu,
              cpu->reg[instr.rs],
@@ -1127,6 +1138,7 @@ void processes(CPU *cpu, int instr_code)
              cpu->reg[instr.rd],
              instr.shamt,
              instr.funct);
+        }
     }
     else if (is_R_FORMAT(instr_code))
     {
