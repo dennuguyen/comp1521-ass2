@@ -689,8 +689,9 @@ char *syscall(CPU *cpu, int *size)
         snprintf(str, *size, "%c", cpu->reg[$a0]->value);
         break;
     default:
-        *size = 24;
-        snprintf(str, 24, "Unknown system call: %d\n", cpu->reg[$v0]->value);
+        *size = 32;
+        snprintf(str, 32, "Unknown system call: %d\n", cpu->reg[$v0]->value);
+        cpu->pc = MAX_INSTRUCTIONS; // Reference to 1521 smips behaviour
     }
 
     return str;
@@ -1198,8 +1199,9 @@ void hexadecimal_parser(FILE *f, CPU *cpu, char *buffer)
 
         printf("%3d: ", i);
         print_instruction_by_format(cpu, instr_code);
-        cpu->memory[i] = instr_code;
         printf("\n");
+
+        cpu->memory[i] = instr_code;
     }
 
     // Execute the program loaded in memory
