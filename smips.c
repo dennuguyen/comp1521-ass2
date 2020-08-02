@@ -912,11 +912,11 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
         printf("%d", cpu->reg[$a0]->value.wd);
         break;
     case 2:
-        printf("%f", cpu->reg[$f12]->value.fl);
+        printf("%lf", cpu->reg[$f12]->value.fl);
         break;
     case 3:
-        printf("%f", cpu->reg[$f12]->value.fl);
-        printf("%f", cpu->reg[$f13]->value.fl);
+        printf("%lf", cpu->reg[$f12]->value.fl);
+        printf("%lf", cpu->reg[$f13]->value.fl);
         break;
     case 4:
         printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
