@@ -1177,7 +1177,7 @@ void processes(CPU *cpu, int instr_code)
 
     // Increment program counter
     if (!jumped)
-        cpu->pc++
+        cpu->pc++;
 }
 
 /**
