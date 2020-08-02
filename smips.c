@@ -49,6 +49,8 @@
 
 #define NUM_REGISTERS 34
 #define BUFFER 65536
+#define MAX_INSTRUCTIONS 1000
+#define MAX_MEMORY 64000
 
 /******************************************************************************
  *                                X MACROS                                    *
@@ -549,13 +551,13 @@ typedef struct REGISTER
 
 /**
  * @struct CPU
- * @brief A MIPS CPU has a program counter, 32 x 32-bit general purpose registers,
- * 16 x 64-bit floating point registers, Hi and Lo registers.
+ * @brief A MIPS CPU has a program counter, registers and memory.
  */
 typedef struct CPU
 {
-    unsigned char pc;             // Program Counter
+    unsigned int pc;              // Program Counter
     REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
+    int memory[MAX_INSTRUCTIONS]; // Memory to store programs
 } CPU;
 
 /**
@@ -597,6 +599,9 @@ CPU *init_CPU()
 
     for (int i = 0; i < NUM_REGISTERS; i++)
         cpu->reg[i] = init_reg(i);
+
+    for (int i = 0; i < MAX_INSTRUCTIONS; i++)
+        cpu->memory[i] = 0;
 
     return cpu;
 }
@@ -1047,14 +1052,13 @@ void print_registers(CPU *cpu)
 }
 
 /**
- * @brief Prints to the buffer an equivalent Assembly instruction for a given
+ * @brief Prints to stdout an equivalent Assembly instruction for a given
  * encoded instruction.
  * 
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
- * @param buffer Buffer to store decoded MIPS instruction
  */
-void print_instruction_by_format(CPU *cpu, int instr_code, char *buffer)
+void print_instruction_by_format(CPU *cpu, int instr_code)
 {
     if (is_P_FORMAT(instr_code))
     {
@@ -1062,10 +1066,6 @@ void print_instruction_by_format(CPU *cpu, int instr_code, char *buffer)
         if (instr.funct == SYSCALL)
         {
             printf("%s", P_STR(instr.funct));
-            int size = 0;
-            char *str = syscall(cpu, &size);
-            strncat(buffer, str, size);
-            free(str);
         }
         else
         {
@@ -1123,13 +1123,21 @@ void print_instruction_by_format(CPU *cpu, int instr_code, char *buffer)
  * 
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
+ * @param buffer Buffer to store decoded MIPS instruction
  */
-void processes(CPU *cpu, int instr_code)
+void processes(CPU *cpu, int instr_code, char *buffer)
 {
     if (is_P_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
-        if (instr.funct != SYSCALL)
+        if (instr.funct == SYSCALL)
+        {
+            int size = 0;
+            char *str = syscall(cpu, &size);
+            strncat(buffer, str, size);
+            free(str);
+        }
+        else
         {
             P_FUNCT_PTR(instr.funct)
             (cpu,
@@ -1172,7 +1180,8 @@ void processes(CPU *cpu, int instr_code)
 }
 
 /**
- * @brief Parse the given hexadecimal stream which is printed and processed.
+ * @brief There are two parses over the hexadecimal string to get the print then
+ * the execution.
  * 
  * @param f Stream of encoded MIPS instructions
  * @param cpu Pointer to instantiation of CPU
@@ -1181,14 +1190,22 @@ void processes(CPU *cpu, int instr_code)
 void hexadecimal_parser(FILE *f, CPU *cpu, char *buffer)
 {
     char line[BUFFER];
+
+    // Load program into memory
     for (int i = 0; fgets(line, sizeof(line), f); i++)
     {
         int instr_code = (int)strtol(line, NULL, 16);
 
         printf("%3d: ", i);
-        print_instruction_by_format(cpu, instr_code, buffer);
-        processes(cpu, instr_code);
+        print_instruction_by_format(cpu, instr_code);
+        cpu->memory[i] = instr_code;
         printf("\n");
+    }
+
+    // Execute the program loaded in memory
+    for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS; cpu->pc++)
+    {
+        processes(cpu, cpu->memory[cpu->pc], buffer);
     }
 }
 
