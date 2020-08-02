@@ -586,7 +586,7 @@ REGISTER *init_reg(reg_name_t name)
 
     reg->name = name;
 
-    if ($0 <= name && name <= HI)
+    if ($zero <= name && name <= Hi)
         reg->value.wd = 0;
     else
         reg->value.fl = 0.0;
@@ -912,11 +912,11 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
         printf("%d", cpu->reg[$a0]->value.wd);
         break;
     case 2:
-        printf("%f", cpu->reg[$f12]->value.fl);
+        printf("%lf", cpu->reg[$f12]->value.fl);
         break;
     case 3:
-        printf("%f", cpu->reg[$f12]->value.fl);
-        printf("%f", cpu->reg[$f13]->value.fl);
+        printf("%lf", cpu->reg[$f12]->value.fl);
+        printf("%lf", cpu->reg[$f13]->value.fl);
         break;
     case 4:
         printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
@@ -925,11 +925,11 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
         scanf("%d", &(cpu->reg[$v0]->value.wd));
         break;
     case 6:
-        scanf("%f", &(cpu->reg[$f0]->value.fl));
+        scanf("%lf", &(cpu->reg[$f0]->value.fl));
         break;
     case 7:
-        scanf("%f", &(cpu->reg[$f0]->value.fl));
-        scanf("%f", &(cpu->reg[$f1]->value.fl));
+        scanf("%lf", &(cpu->reg[$f0]->value.fl));
+        scanf("%lf", &(cpu->reg[$f1]->value.fl));
         break;
     case 8:
         fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
