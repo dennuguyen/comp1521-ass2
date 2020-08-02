@@ -545,7 +545,7 @@ char *P_STR(int key)
 typedef union reg_t
 {
     __int32_t wd; // Size of a MIPS register is 32 bits.
-    _Float32 fl;  // Size of a MIPS register is 32 bits.
+    float fl;     // Size of a MIPS register is 32 bits.
 } reg_t;
 
 /**
@@ -586,7 +586,7 @@ REGISTER *init_reg(reg_name_t name)
 
     reg->name = name;
 
-    if ($0 <= name && name <= HI)
+    if ($zero <= name && name <= Hi)
         reg->value.wd = 0;
     else
         reg->value.fl = 0.0;
