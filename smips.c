@@ -937,7 +937,7 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
               stdin);
         break;
     case 9:
-        cpu->reg[$v0]->value.wd = (int)sbrk(cpu->reg[$a0]->value.wd);
+        cpu->reg[$v0]->value.wd = (__intptr_t)sbrk(cpu->reg[$a0]->value.wd);
         break;
     case 10:
         cpu->pc = MAX_INSTRUCTIONS;
