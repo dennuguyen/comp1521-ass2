@@ -4,8 +4,9 @@
  * Simple MIPS emulator called SMIPS for COMP1521 which interprets hexadecimal
  * encoded instructions.
  * 
- * The design choices made in this assignment are intended for future scale-up
- * for more tools and features.
+ * The design choices made in this assignment are intended to allow future
+ * scale-up for more tools and features e.g. complete MIPS instruction set,
+ * floating point co-processor, Assembly parsing.
  * 
  * 
  * Some random info:
@@ -18,7 +19,8 @@
  * variable-length instructions to allocate to memory. However MIPS assemblers
  * use 'cursory examination' due to their fixed-length instructions.
  * 
- * These two parses can be combined into a single parse called 'backpatching'.
+ * These two parses can be combined into a single parse with a technique called
+ * 'backpatching'.
  * 
  * 
  * SMIPS outputs:
@@ -27,6 +29,7 @@
  *  3. register values when program terminates
  * 
  * Instruction format: 000000 00000 00000 00000 00000 000000
+ * 
  * Resources:
  *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html instruction formatting
  *  - https://opencores.org/projects/plasma/opcodes opcodes
@@ -38,9 +41,10 @@
  * 
  * 
  * @todo
- *  - branching functions
  *  - check if unsigned functions are correct
  *  - error handling
+ *  - matchingw weird quirky features of 1521 smips
+ *  - implement common pseudo instructions
  */
 
 #include <stdbool.h>
@@ -1051,6 +1055,8 @@ void print_bits(__uint64_t value, int n_bits)
  */
 void print_registers(CPU *cpu)
 {
+    printf("Registers After Execution\n");
+
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31) // 1521 spim
             printf("%-3s = %d\n",
@@ -1186,6 +1192,8 @@ void hexadecimal_parser(FILE *f, CPU *cpu)
 {
     char line[BUFFER];
 
+    printf("Program\n");
+
     // Load program into memory
     for (int i = 0; fgets(line, sizeof(line), f); i++)
     {
@@ -1229,10 +1237,7 @@ int main(int argv, char *argc[])
 
     CPU *cpu = init_CPU();
 
-    printf("Program\n");
     hexadecimal_parser(f, cpu);
-
-    printf("Registers After Execution\n");
     print_registers(cpu);
 
     free_CPU(cpu);
