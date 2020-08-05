@@ -55,7 +55,7 @@
 
 #define NUM_REGISTERS 60
 #define BUFFER 4096
-#define MAX_INSTRUCTIONS 1000
+#define MAX_INSTR 1000
 #define MAX_MEMORY 65536
 
 /******************************************************************************
@@ -570,7 +570,7 @@ typedef struct CPU
 {
     unsigned int pc;              // Program Counter
     REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
-    int memory[MAX_INSTRUCTIONS]; // Memory to store programs
+    int memory[MAX_INSTR];        // Memory to store programs
 } CPU;
 
 /**
@@ -617,7 +617,7 @@ CPU *init_CPU()
     for (int i = 0; i < NUM_REGISTERS; i++)
         cpu->reg[i] = init_reg(i);
 
-    for (int i = 0; i < MAX_INSTRUCTIONS; i++)
+    for (int i = 0; i < MAX_INSTR; i++)
         cpu->memory[i] = 0;
 
     return cpu;
@@ -918,43 +918,43 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
     case 1:
         printf("%d", cpu->reg[$a0]->value.wd);
         break;
-    case 2:
-        printf("%lf", cpu->reg[$f12]->value.fl);
-        break;
-    case 3:
-        printf("%lf", cpu->reg[$f12]->value.fl);
-        printf("%lf", cpu->reg[$f13]->value.fl);
-        break;
-    case 4:
-        printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
-        break;
-    case 5:
-        scanf("%d", &(cpu->reg[$v0]->value.wd));
-        break;
-    case 6:
-        scanf("%f", &(cpu->reg[$f0]->value.fl));
-        break;
-    case 7:
-        scanf("%f", &(cpu->reg[$f0]->value.fl));
-        scanf("%f", &(cpu->reg[$f1]->value.fl));
-        break;
-    case 8:
-        fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
-              cpu->reg[$a1]->value.wd,
-              stdin);
-        break;
-    case 9:
-        cpu->reg[$v0]->value.wd = (__intptr_t)sbrk(cpu->reg[$a0]->value.wd);
-        break;
+    // case 2:
+    //     printf("%lf", cpu->reg[$f12]->value.fl);
+    //     break;
+    // case 3:
+    //     printf("%lf", cpu->reg[$f12]->value.fl);
+    //     printf("%lf", cpu->reg[$f13]->value.fl);
+    //     break;
+    // case 4:
+    //     printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
+    //     break;
+    // case 5:
+    //     scanf("%d", &(cpu->reg[$v0]->value.wd));
+    //     break;
+    // case 6:
+    //     scanf("%f", &(cpu->reg[$f0]->value.fl));
+    //     break;
+    // case 7:
+    //     scanf("%f", &(cpu->reg[$f0]->value.fl));
+    //     scanf("%f", &(cpu->reg[$f1]->value.fl));
+    //     break;
+    // case 8:
+    //     fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
+    //           cpu->reg[$a1]->value.wd,
+    //           stdin);
+    //     break;
+    // case 9:
+    //     cpu->reg[$v0]->value.wd = (__intptr_t)sbrk(cpu->reg[$a0]->value.wd);
+    //     break;
     case 10:
-        cpu->pc = MAX_INSTRUCTIONS;
+        cpu->pc = MAX_INSTR;
         break;
     case 11:
         printf("%c", cpu->reg[$a0]->value.wd);
         break;
     default:
         printf("Unknown system call: %d\n", cpu->reg[$v0]->value.wd);
-        cpu->pc = MAX_INSTRUCTIONS;
+        cpu->pc = MAX_INSTR;
     }
 }
 
@@ -1062,6 +1062,26 @@ void print_registers(CPU *cpu)
             printf("%-3s = %d\n",
                    REG_NUM_STR(cpu->reg[i]->name),
                    cpu->reg[i]->value.wd);
+}
+
+/**
+ * @brief Check if instruction code is valid. If it is not valid, print the
+ * file, line number and instruction then exit.
+ * 
+ * @param file File name
+ * @param instr_code Encoded MIPS instruction
+ * @param i Line number
+ */
+void check_valid_instruction(char *file, int instr_code, int i)
+{
+    if (!is_P_FORMAT(instr_code) &&
+        !is_R_FORMAT(instr_code) &&
+        !is_I_FORMAT(instr_code) &&
+        !is_J_FORMAT(instr_code))
+    {
+        printf("%s:%d: invalid instruction code: %.6d\n", file, i, instr_code);
+        exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -1188,28 +1208,33 @@ void processes(CPU *cpu, int instr_code)
  * @param f Stream of encoded MIPS instructions
  * @param cpu Pointer to instantiation of CPU
  */
-void hexadecimal_parser(FILE *f, CPU *cpu)
+void hexadecimal_parser(FILE *f, CPU *cpu, char *file)
 {
     char line[BUFFER];
 
-    printf("Program\n");
-
-    // Load program into memory
-    for (int i = 0; fgets(line, sizeof(line), f); i++)
+    // Load program into memory and check instruction validity
+    int j = 0;
+    for (int i = 0; fgets(line, sizeof(line), f) && j < MAX_INSTR; i++, j++)
     {
         int instr_code = (int)strtol(line, NULL, 16);
-
-        printf("%3d: ", i);
-        print_instruction_by_format(cpu, instr_code);
-        printf("\n");
-
+        check_valid_instruction(file, instr_code, i);
         cpu->memory[i] = instr_code;
+    }
+
+    printf("Program\n");
+
+    // Print program instructions
+    for (int i = 0; i < j; i++)
+    {
+        printf("%3d: ", i);
+        print_instruction_by_format(cpu, cpu->memory[i]);
+        printf("\n");
     }
 
     printf("Output\n");
 
     // Execute the program loaded in memory
-    for (cpu->pc = 0; cpu->pc < MAX_INSTRUCTIONS; cpu->pc++)
+    for (cpu->pc = 0; cpu->pc < j; cpu->pc++)
         processes(cpu, cpu->memory[cpu->pc]);
 }
 
@@ -1237,7 +1262,7 @@ int main(int argv, char *argc[])
 
     CPU *cpu = init_CPU();
 
-    hexadecimal_parser(f, cpu);
+    hexadecimal_parser(f, cpu, argc[1]);
     print_registers(cpu);
 
     free_CPU(cpu);
