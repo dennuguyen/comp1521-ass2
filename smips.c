@@ -1,35 +1,35 @@
 /**
  * @author Dan Nguyen (z5206032)
- * 
+ *
  * Simple MIPS emulator called SMIPS for COMP1521 which interprets hexadecimal
  * encoded instructions.
- * 
+ *
  * The design choices made in this assignment are intended to allow future
  * scale-up for more tools and features e.g. complete MIPS instruction set,
  * floating point co-processor, Assembly parsing.
- * 
- * 
+ *
+ *
  * Some random info:
- * 
+ *
  * Assemblers parse the file twice: first to get the lexemes and store the
  * information into its symbol table, then the second to produce the machine
- * code. 
- * 
+ * code.
+ *
  * On the first parse, assemblers must determine the instruction size of
  * variable-length instructions to allocate to memory. However MIPS assemblers
  * use 'cursory examination' due to their fixed-length instructions.
- * 
+ *
  * These two parses can be combined into a single parse with a technique called
  * 'backpatching'.
- * 
- * 
+ *
+ *
  * SMIPS outputs:
  *  1. the instruction to each instruction opcode
  *  2. output produced by syscalls
  *  3. register values when program terminates
- * 
+ *
  * Instruction format: 000000 00000 00000 00000 00000 000000
- * 
+ *
  * Resources:
  *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html instruction formatting
  *  - https://opencores.org/projects/plasma/opcodes opcodes
@@ -38,8 +38,8 @@
  *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf MIPS reference
  *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf SPIM manual
  *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html floating point instructions
- * 
- * 
+ *
+ *
  * @todo
  *  - check if unsigned functions are correct
  *  - error handling
@@ -58,19 +58,19 @@
 #define MAX_INSTR 1000
 #define MAX_MEMORY 65536
 
-/******************************************************************************
- *                                X MACROS                                    *
- ******************************************************************************/
+ /******************************************************************************
+  *                                X MACROS                                    *
+  ******************************************************************************/
 
-/**
- * @def REGISTER_TABLE
- * @brief X macro for registers to store enumerated number, enumerated name
- * and name as string.
- * 
- * @param REG_NUM Number of register
- * @param REG_NAME Name of register as enum
- * @param STR Name of register as string
- */
+  /**
+   * @def REGISTER_TABLE
+   * @brief X macro for registers to store enumerated number, enumerated name
+   * and name as string.
+   *
+   * @param REG_NUM Number of register
+   * @param REG_NAME Name of register as enum
+   * @param STR Name of register as string
+   */
 #define REGISTER_TABLE    \
     _X($0, $zero, "$0")   \
     _X($1, $at, "$1")     \
@@ -134,16 +134,16 @@
     _X($f29, _59, "$f29") \
     _X($f30, _60, "$f30")
 
-/**
- * @def R_TYPE_TABLE
- * @brief X macro for R-type instructions to store its enumerated name, funct
- * code, name as string, function pointer.
- * 
- * @param NAME Name of instruction as enum
- * @param FUNCT Funct value of instruction
- * @param STR Name of instruction as string
- * @param FUNC_PTR Function pointer to instruction
- */
+   /**
+    * @def R_TYPE_TABLE
+    * @brief X macro for R-type instructions to store its enumerated name, funct
+    * code, name as string, function pointer.
+    *
+    * @param NAME Name of instruction as enum
+    * @param FUNCT Funct value of instruction
+    * @param STR Name of instruction as string
+    * @param FUNC_PTR Function pointer to instruction
+    */
 #define R_TYPE_TABLE                         \
     _R(ADD, 0b100000, "add", MIPS_add)       \
     _R(ADDU, 0b100001, "addu", MIPS_addu)    \
@@ -173,16 +173,16 @@
     _R(SUBU, 0b100011, "subu", MIPS_subu)    \
     _R(XOR, 0b100110, "xor", MIPS_xor)
 
-/**
- * @def I_TYPE_TABLE
- * @brief X macro for I-type instructions to store its enumerated name, funct
- * code, name as string, function pointer.
- * 
- * @param NAME Name of instruction as enum
- * @param OP Op value of instruction
- * @param STR Name of instruction as string
- * @param FUNC_PTR Function pointer to instruction
- */
+    /**
+     * @def I_TYPE_TABLE
+     * @brief X macro for I-type instructions to store its enumerated name, funct
+     * code, name as string, function pointer.
+     *
+     * @param NAME Name of instruction as enum
+     * @param OP Op value of instruction
+     * @param STR Name of instruction as string
+     * @param FUNC_PTR Function pointer to instruction
+     */
 #define I_TYPE_TABLE                         \
     _I(ADDI, 0b001000, "addi", MIPS_addi)    \
     _I(ADDIU, 0b001001, "addiu", MIPS_addiu) \
@@ -205,41 +205,41 @@
     _I(SW, 0b101011, "sw", MIPS_sw)          \
     _I(XORI, 0b001110, "xori", MIPS_xori)
 
-/**
- * @def J_TYPE_TABLE
- * @brief X macro for J-type instructions to store its enumerated name, funct
- * code, name as string, function pointer.
- * 
- * @param NAME Name of instruction as enum
- * @param OP Op value of instruction
- * @param STR Name of instruction as string
- * @param FUNC_PTR Function pointer to instruction
- */
+     /**
+      * @def J_TYPE_TABLE
+      * @brief X macro for J-type instructions to store its enumerated name, funct
+      * code, name as string, function pointer.
+      *
+      * @param NAME Name of instruction as enum
+      * @param OP Op value of instruction
+      * @param STR Name of instruction as string
+      * @param FUNC_PTR Function pointer to instruction
+      */
 #define J_TYPE_TABLE             \
     _J(J, 0b000010, "j", MIPS_j) \
     _J(JAL, 0b000011, "jal", MIPS_jal)
 
-/**
- * @def P_TYPE_TABLE
- * @brief X macro for P-type instructions to store its enumerated name, funct
- * code, name as string, function pointer.
- * 
- * @param NAME Name of instruction as enum
- * @param FUNCT Funct value of instruction
- * @param STR Name of instruction as string
- * @param FUNC_PTR Function pointer to instruction
- */
+      /**
+       * @def P_TYPE_TABLE
+       * @brief X macro for P-type instructions to store its enumerated name, funct
+       * code, name as string, function pointer.
+       *
+       * @param NAME Name of instruction as enum
+       * @param FUNCT Funct value of instruction
+       * @param STR Name of instruction as string
+       * @param FUNC_PTR Function pointer to instruction
+       */
 #define P_TYPE_TABLE                   \
     _P(MUL, 0b000010, "mul", MIPS_mul) \
     _P(SYSCALL, 0b001100, "syscall", MIPS_syscall)
 
-/******************************************************************************
- *                          REGISTER CONVENTIONS                              *
- ******************************************************************************/
+       /******************************************************************************
+        *                          REGISTER CONVENTIONS                              *
+        ******************************************************************************/
 
-/**
- * MIPS data types
- */
+        /**
+         * MIPS data types
+         */
 typedef __uint32_t word_t; // Size of word.
 typedef __uint16_t half_t; // Size of half.
 typedef __uint8_t byte_t;  // Size of byte.
@@ -271,12 +271,12 @@ typedef enum reg_name_t
 #define _X(REG_NUM, REG_NAME, STR) STR,
 /**
  * @brief Returns the register from `REGISTER_TABLE` as a string.
- * 
+ *
  * @param key Key is an enumerated type
  */
 char *REG_NUM_STR(int key)
 {
-    char *_REG_NUM_STR[] = {REGISTER_TABLE};
+    char *_REG_NUM_STR[] ={ REGISTER_TABLE };
     return _REG_NUM_STR[key];
 }
 #undef _X
@@ -286,10 +286,10 @@ char *REG_NUM_STR(int key)
  ******************************************************************************/
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) NAME = FUNCT,
-/**
- * @enum R_t
- * @brief Enumerate `NAME` by its `FUNCT` value from `R_TYPE_TABLE`.
- */
+ /**
+  * @enum R_t
+  * @brief Enumerate `NAME` by its `FUNCT` value from `R_TYPE_TABLE`.
+  */
 typedef enum R_t
 {
     R_TYPE_TABLE
@@ -369,7 +369,7 @@ typedef struct J_FORMAT
 /**
  * @brief Extracts the bit fields from an encoded instruction for an R-type
  * instruction.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
  * @return R_FORMAT
  */
@@ -388,7 +388,7 @@ R_FORMAT extract_R_FORMAT(int instr_code)
 /**
  * @brief Extracts the bit fields from an encoded instruction for an I-type
  * instruction.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
  * @return I_FORMAT
  */
@@ -407,7 +407,7 @@ I_FORMAT extract_I_FORMAT(int instr_code)
  * instruction.
  *
  * @param instr_code Encoded MIPS instruction
- * @return J_FORMAT 
+ * @return J_FORMAT
  */
 J_FORMAT extract_J_FORMAT(int instr_code)
 {
@@ -420,10 +420,10 @@ J_FORMAT extract_J_FORMAT(int instr_code)
 /**
  * @brief Check if opcode is in R format by comparing its op value against
  * 0b000000.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool is_R_FORMAT(int instr_code)
 {
@@ -436,10 +436,10 @@ bool is_R_FORMAT(int instr_code)
 /**
  * @brief Check if instruction is in J format by comparing its op value against
  * known J-instructions.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool is_J_FORMAT(int instr_code)
 {
@@ -452,10 +452,10 @@ bool is_J_FORMAT(int instr_code)
 /**
  * @brief Check if opcode is a pseudo instruction by comparing its funct value
  * against known pseudo instructions.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool is_P_FORMAT(int instr_code)
 {
@@ -468,10 +468,10 @@ bool is_P_FORMAT(int instr_code)
 /**
  * @brief Check if instruction is in I format if it does not match any other
  * instruction criteria.
- * 
+ *
  * @param instr_code Encoded MIPS instruction
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool is_I_FORMAT(int instr_code)
 {
@@ -485,13 +485,13 @@ bool is_I_FORMAT(int instr_code)
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = STR,
 /**
  * @brief Returns the R-type instruction from `R_TYPE_TABLE` as a string.
- * 
+ *
  * @param key Key is an enumerated type
- * @return char* 
+ * @return char*
  */
 char *R_STR(int key)
 {
-    char *_R_STR[] = {R_TYPE_TABLE};
+    char *_R_STR[] ={ R_TYPE_TABLE };
     return _R_STR[key];
 }
 #undef _R
@@ -499,13 +499,13 @@ char *R_STR(int key)
 #define _I(NAME, OP, STR, FUNC_PTR) [NAME] = STR,
 /**
  * @brief Returns the I-type instruction from `I_TYPE_TABLE` as a string.
- * 
- * @param key 
- * @return char* 
+ *
+ * @param key
+ * @return char*
  */
 char *I_STR(int key)
 {
-    char *_I_STR[] = {I_TYPE_TABLE};
+    char *_I_STR[] ={ I_TYPE_TABLE };
     return _I_STR[key];
 }
 #undef _I
@@ -513,13 +513,13 @@ char *I_STR(int key)
 #define _J(NAME, OP, STR, FUNC_PTR) [NAME] = STR,
 /**
  * @brief Returns the J-type instruction from `J_TYPE_TABLE` as a string.
- * 
- * @param key 
- * @return char* 
+ *
+ * @param key
+ * @return char*
  */
 char *J_STR(int key)
 {
-    char *_J_STR[] = {J_TYPE_TABLE};
+    char *_J_STR[] ={ J_TYPE_TABLE };
     return _J_STR[key];
 }
 #undef _J
@@ -527,13 +527,13 @@ char *J_STR(int key)
 #define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = STR,
 /**
  * @brief Returns the pseudo instruction from `P_TYPE_TABLE` as a string.
- * 
- * @param key 
- * @return char* 
+ *
+ * @param key
+ * @return char*
  */
 char *P_STR(int key)
 {
-    char *_P_STR[] = {P_TYPE_TABLE};
+    char *_P_STR[] ={ P_TYPE_TABLE };
     return _P_STR[key];
 }
 #undef _P
@@ -542,10 +542,10 @@ char *P_STR(int key)
  *                               HARDWARE                                     *
  ******************************************************************************/
 
-/**
- * @union reg_t
- * @brief Registers are initialised to either wd or fl which are `reg_t`.
- */
+ /**
+  * @union reg_t
+  * @brief Registers are initialised to either wd or fl which are `reg_t`.
+  */
 typedef union reg_t
 {
     __int32_t wd; // Size of a MIPS register is 32 bits.
@@ -564,20 +564,20 @@ typedef struct REGISTER
 
 /**
  * @struct CPU
- * @brief A MIPS CPU has a program counter, registers and memory.
+ * @brief A MIPS CPU has a program counter, registers and cache.
  */
 typedef struct CPU
 {
     unsigned int pc;              // Program Counter
     REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
-    int memory[MAX_INSTR];        // Memory to store programs
+    int cache[MAX_INSTR];        // Cache to store programs
 } CPU;
 
 /**
  * @brief Initialise a register given a register name.
- * 
+ *
  * @param name Name of register
- * @return REGISTER* 
+ * @return REGISTER*
  */
 REGISTER *init_reg(reg_name_t name)
 {
@@ -600,8 +600,8 @@ REGISTER *init_reg(reg_name_t name)
 
 /**
  * @brief Initialise the CPU and its registers.
- * 
- * @return CPU* 
+ *
+ * @return CPU*
  */
 CPU *init_CPU()
 {
@@ -618,14 +618,14 @@ CPU *init_CPU()
         cpu->reg[i] = init_reg(i);
 
     for (int i = 0; i < MAX_INSTR; i++)
-        cpu->memory[i] = 0;
+        cpu->cache[i] = 0;
 
     return cpu;
 }
 
 /**
  * @brief Destroy the register.
- * 
+ *
  * @param reg Register to be destroyed
  */
 void free_reg(REGISTER *reg)
@@ -636,7 +636,7 @@ void free_reg(REGISTER *reg)
 
 /**
  * @brief Destroy the CPU by freeing all its registers and then itself.
- * 
+ *
  * @param cpu CPU to be destroyed
  */
 void free_CPU(CPU *cpu)
@@ -908,7 +908,7 @@ void MIPS_sw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 /**
  * @brief Emulation of syscall function which checks `$v0` to set syscall
  * behaviour and arguments `$a0`, `$a1`, `$a2`, `$a3`.
- * 
+ *
  * @param cpu Pointer to instantiation of CPU
  */
 void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
@@ -918,34 +918,34 @@ void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt,
     case 1:
         printf("%d", cpu->reg[$a0]->value.wd);
         break;
-    // case 2:
-    //     printf("%lf", cpu->reg[$f12]->value.fl);
-    //     break;
-    // case 3:
-    //     printf("%lf", cpu->reg[$f12]->value.fl);
-    //     printf("%lf", cpu->reg[$f13]->value.fl);
-    //     break;
-    // case 4:
-    //     printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
-    //     break;
-    // case 5:
-    //     scanf("%d", &(cpu->reg[$v0]->value.wd));
-    //     break;
-    // case 6:
-    //     scanf("%f", &(cpu->reg[$f0]->value.fl));
-    //     break;
-    // case 7:
-    //     scanf("%f", &(cpu->reg[$f0]->value.fl));
-    //     scanf("%f", &(cpu->reg[$f1]->value.fl));
-    //     break;
-    // case 8:
-    //     fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
-    //           cpu->reg[$a1]->value.wd,
-    //           stdin);
-    //     break;
-    // case 9:
-    //     cpu->reg[$v0]->value.wd = (__intptr_t)sbrk(cpu->reg[$a0]->value.wd);
-    //     break;
+        // case 2:
+        //     printf("%lf", cpu->reg[$f12]->value.fl);
+        //     break;
+        // case 3:
+        //     printf("%lf", cpu->reg[$f12]->value.fl);
+        //     printf("%lf", cpu->reg[$f13]->value.fl);
+        //     break;
+        // case 4:
+        //     printf("%s", (char *)(__intptr_t)(cpu->reg[$v0]->value.wd));
+        //     break;
+        // case 5:
+        //     scanf("%d", &(cpu->reg[$v0]->value.wd));
+        //     break;
+        // case 6:
+        //     scanf("%f", &(cpu->reg[$f0]->value.fl));
+        //     break;
+        // case 7:
+        //     scanf("%f", &(cpu->reg[$f0]->value.fl));
+        //     scanf("%f", &(cpu->reg[$f1]->value.fl));
+        //     break;
+        // case 8:
+        //     fgets((char *)(__intptr_t)cpu->reg[$a0]->value.wd,
+        //           cpu->reg[$a1]->value.wd,
+        //           stdin);
+        //     break;
+        // case 9:
+        //     cpu->reg[$v0]->value.wd = (__intptr_t)sbrk(cpu->reg[$a0]->value.wd);
+        //     break;
     case 10:
         cpu->pc = MAX_INSTR;
         break;
@@ -972,13 +972,13 @@ void MIPS_xori(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
 /**
  * @brief Returns the function pointer to an R-type instruction from
  * `R_TYPE_TABLE`
- * 
+ *
  * @param key Key is an enumerated type
- * @return R_funct_ptr_t* 
+ * @return R_funct_ptr_t*
  */
 R_funct_ptr_t *R_FUNCT_PTR(int key)
 {
-    void *_R_FUNC[] = {R_TYPE_TABLE};
+    void *_R_FUNC[] ={ R_TYPE_TABLE };
     return _R_FUNC[key];
 }
 #undef _R
@@ -987,13 +987,13 @@ R_funct_ptr_t *R_FUNCT_PTR(int key)
 /**
  * @brief Returns the function pointer to an I-type instruction from
  * `I_TYPE_TABLE`
- * 
+ *
  * @param key Key is an enumerated type
- * @return I_funct_ptr_t* 
+ * @return I_funct_ptr_t*
  */
 I_funct_ptr_t *I_FUNCT_PTR(int key)
 {
-    void *_I_FUNC[] = {I_TYPE_TABLE};
+    void *_I_FUNC[] ={ I_TYPE_TABLE };
     return _I_FUNC[key];
 }
 #undef _I
@@ -1002,13 +1002,13 @@ I_funct_ptr_t *I_FUNCT_PTR(int key)
 /**
  * @brief Returns the function pointer to a J-type instruction from
  * `J_TYPE_TABLE`
- * 
+ *
  * @param key Key is an enumerated type
- * @return J_funct_ptr_t* 
+ * @return J_funct_ptr_t*
  */
 J_funct_ptr_t *J_FUNCT_PTR(int key)
 {
-    void *_J_FUNC[] = {J_TYPE_TABLE};
+    void *_J_FUNC[] ={ J_TYPE_TABLE };
     return _J_FUNC[key];
 }
 #undef _J
@@ -1017,13 +1017,13 @@ J_funct_ptr_t *J_FUNCT_PTR(int key)
 /**
  * @brief Returns the function pointer to a pseudo instruction from
  * `P_TYPE_TABLE`
- * 
+ *
  * @param key Key is an enumerated type
- * @return R_funct_ptr_t* 
+ * @return R_funct_ptr_t*
  */
 R_funct_ptr_t *P_FUNCT_PTR(int key)
 {
-    void *_P_FUNC[] = {P_TYPE_TABLE};
+    void *_P_FUNC[] ={ P_TYPE_TABLE };
     return _P_FUNC[key];
 }
 #undef _P
@@ -1032,12 +1032,12 @@ R_funct_ptr_t *P_FUNCT_PTR(int key)
  *                                  MAIN                                      *
  ******************************************************************************/
 
-/**
- * @brief Print bits from MSB to LSB.
- * 
- * @param value Value of bit
- * @param n_bits Number of bits to be printed
- */
+ /**
+  * @brief Print bits from MSB to LSB.
+  *
+  * @param value Value of bit
+  * @param n_bits Number of bits to be printed
+  */
 void print_bits(__uint64_t value, int n_bits)
 {
     for (int i = n_bits - 1; i >= 0; i--)
@@ -1050,7 +1050,7 @@ void print_bits(__uint64_t value, int n_bits)
 
 /**
  * @brief Print non-zero registers, $0 - $31.
- * 
+ *
  * @param cpu Pointer to instantiation of CPU
  */
 void print_registers(CPU *cpu)
@@ -1060,14 +1060,14 @@ void print_registers(CPU *cpu)
     for (int i = 0; i < NUM_REGISTERS; i++)
         if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31) // 1521 spim
             printf("%-3s = %d\n",
-                   REG_NUM_STR(cpu->reg[i]->name),
-                   cpu->reg[i]->value.wd);
+                REG_NUM_STR(cpu->reg[i]->name),
+                cpu->reg[i]->value.wd);
 }
 
 /**
  * @brief Check if instruction code is valid. If it is not valid, print the
  * file, line number and instruction then exit.
- * 
+ *
  * @param file File name
  * @param instr_code Encoded MIPS instruction
  * @param i Line number
@@ -1087,7 +1087,7 @@ void check_valid_instruction(char *file, int instr_code, int i)
 /**
  * @brief Prints to stdout an equivalent Assembly instruction for a given
  * encoded instruction.
- * 
+ *
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
  */
@@ -1103,20 +1103,20 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
         else
         {
             printf("%-4s %s, %s, %s",
-                   P_STR(instr.funct),
-                   REG_NUM_STR(instr.rd),
-                   REG_NUM_STR(instr.rs),
-                   REG_NUM_STR(instr.rt));
+                P_STR(instr.funct),
+                REG_NUM_STR(instr.rd),
+                REG_NUM_STR(instr.rs),
+                REG_NUM_STR(instr.rt));
         }
     }
     else if (is_R_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         printf("%-4s %s, %s, %s",
-               R_STR(instr.funct),
-               REG_NUM_STR(instr.rd),
-               REG_NUM_STR(instr.rs),
-               REG_NUM_STR(instr.rt));
+            R_STR(instr.funct),
+            REG_NUM_STR(instr.rd),
+            REG_NUM_STR(instr.rs),
+            REG_NUM_STR(instr.rt));
     }
     else if (is_I_FORMAT(instr_code))
     {
@@ -1124,24 +1124,24 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
         if (instr.op == BEQ || instr.op == BNE)
         {
             printf("%-4s %s, %s, %d",
-                   I_STR(instr.op),
-                   REG_NUM_STR(instr.rs),
-                   REG_NUM_STR(instr.rt), instr.imm);
+                I_STR(instr.op),
+                REG_NUM_STR(instr.rs),
+                REG_NUM_STR(instr.rt), instr.imm);
         }
         else if (instr.op == LUI)
         {
             printf("%-4s %s, %d",
-                   I_STR(instr.op),
-                   REG_NUM_STR(instr.rt),
-                   instr.imm);
+                I_STR(instr.op),
+                REG_NUM_STR(instr.rt),
+                instr.imm);
         }
         else
         {
             printf("%-4s %s, %s, %d",
-                   I_STR(instr.op),
-                   REG_NUM_STR(instr.rt),
-                   REG_NUM_STR(instr.rs),
-                   instr.imm);
+                I_STR(instr.op),
+                REG_NUM_STR(instr.rt),
+                REG_NUM_STR(instr.rs),
+                instr.imm);
         }
     }
     else if (is_J_FORMAT(instr_code))
@@ -1153,48 +1153,48 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
 
 /**
  * @brief Carry out the CPU's processes.
- * 
+ *
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
  */
-void processes(CPU *cpu, int instr_code)
+bool processes(CPU *cpu, int instr_code)
 {
     if (is_P_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         P_FUNCT_PTR(instr.funct)
-        (cpu,
-         cpu->reg[instr.rs],
-         cpu->reg[instr.rt],
-         cpu->reg[instr.rd],
-         instr.shamt,
-         instr.funct);
+            (cpu,
+                cpu->reg[instr.rs],
+                cpu->reg[instr.rt],
+                cpu->reg[instr.rd],
+                instr.shamt,
+                instr.funct);
     }
     else if (is_R_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         R_FUNCT_PTR(instr.funct)
-        (cpu,
-         cpu->reg[instr.rs],
-         cpu->reg[instr.rt],
-         cpu->reg[instr.rd],
-         instr.shamt,
-         instr.funct);
+            (cpu,
+                cpu->reg[instr.rs],
+                cpu->reg[instr.rt],
+                cpu->reg[instr.rd],
+                instr.shamt,
+                instr.funct);
     }
     else if (is_I_FORMAT(instr_code))
     {
         I_FORMAT instr = extract_I_FORMAT(instr_code);
         I_FUNCT_PTR(instr.op)
-        (cpu,
-         cpu->reg[instr.rs],
-         cpu->reg[instr.rt],
-         instr.imm);
+            (cpu,
+                cpu->reg[instr.rs],
+                cpu->reg[instr.rt],
+                instr.imm);
     }
     else if (is_J_FORMAT(instr_code))
     {
         J_FORMAT instr = extract_J_FORMAT(instr_code);
         J_FUNCT_PTR(instr.op)
-        (cpu, cpu->reg[instr.addr]);
+            (cpu, cpu->reg[instr.addr]);
     }
 
     // Clean up registers
@@ -1204,21 +1204,21 @@ void processes(CPU *cpu, int instr_code)
 /**
  * @brief There are two parses over the hexadecimal string to get the print then
  * the execution.
- * 
+ *
  * @param f Stream of encoded MIPS instructions
  * @param cpu Pointer to instantiation of CPU
  */
 void hexadecimal_parser(FILE *f, CPU *cpu, char *file)
 {
     char line[BUFFER];
+    int j = 0; // Counter for number of instructions loaded
 
-    // Load program into memory and check instruction validity
-    int j = 0;
+    // Load program into cache and check instruction validity
     for (int i = 0; fgets(line, sizeof(line), f) && j < MAX_INSTR; i++, j++)
     {
         int instr_code = (int)strtol(line, NULL, 16);
         check_valid_instruction(file, instr_code, i);
-        cpu->memory[i] = instr_code;
+        cpu->cache[i] = instr_code;
     }
 
     printf("Program\n");
@@ -1227,23 +1227,23 @@ void hexadecimal_parser(FILE *f, CPU *cpu, char *file)
     for (int i = 0; i < j; i++)
     {
         printf("%3d: ", i);
-        print_instruction_by_format(cpu, cpu->memory[i]);
+        print_instruction_by_format(cpu, cpu->cache[i]);
         printf("\n");
     }
 
     printf("Output\n");
 
-    // Execute the program loaded in memory
-    for (cpu->pc = 0; cpu->pc < j; cpu->pc++)
-        processes(cpu, cpu->memory[cpu->pc]);
+    // Execute the program loaded in cache while PC is in [0, j)
+    for (cpu->pc = 0; 0 <= cpu->pc && cpu->pc < j; cpu->pc++)
+        processes(cpu, cpu->cache[cpu->pc]);
 }
 
 /**
  * @brief Main function.
- * 
- * @param argv 
- * @param argc 
- * @return int 
+ *
+ * @param argv
+ * @param argc
+ * @return int
  */
 int main(int argv, char *argc[])
 {
