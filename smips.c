@@ -1157,7 +1157,7 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
  * @param cpu Pointer to instantiation of CPU
  * @param instr_code Encoded MIPS instruction
  */
-bool processes(CPU *cpu, int instr_code)
+void processes(CPU *cpu, int instr_code)
 {
     if (is_P_FORMAT(instr_code))
     {
