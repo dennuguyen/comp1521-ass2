@@ -1,8 +1,8 @@
 CC     = clang
-CFLAGS = -Wall -Werror -fsanitize=address
+CFLAGS = -Wall -Werror -I.
 
 smips: smips.o
-	$(CC) $(CFLAGS) smips.c -o smips
+	$(CC) $(CFLAGS) smips.c functions.c hardware.c opcode.c -o smips
 
 clean:
 	-rm -f smips.o
