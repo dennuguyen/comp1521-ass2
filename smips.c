@@ -1,18 +1,11 @@
 /**
- * @author Dan Nguyen (z5206032)
- *
- * Simple MIPS emulator called SMIPS for COMP1521 which interprets hexadecimal
- * encoded instructions.
+ * @brief Simple MIPS emulator called SMIPS.
+ * @author Dan Nguyen
  *
  * SMIPS outputs:
  *  1. the instruction to each instruction opcode
  *  2. output produced by syscalls
  *  3. changed register values when program terminates
- *
- * The design choices made in this assignment are intended to allow future
- * scale-up for more tools and features e.g. complete MIPS instruction set,
- * floating point co-processor, Assembly parsing, stack frames.
- *
  *
  * Some random info:
  *
@@ -27,8 +20,6 @@
  * These two parses can be combined into a single parse with a technique called
  * 'backpatching'.
  *
- *
- *
  * Instruction format: 000000 00000 00000 00000 00000 000000
  *
  * Resources:
@@ -40,11 +31,11 @@
  *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf SPIM manual
  *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html floating point instructions
  *
- *
  * @todo
  *  - check if unsigned functions are correct
  *  - implement common pseudo instructions
  *  - stack frames
+ *  - assembly parser
  */
 
 #include <stdbool.h>
@@ -226,23 +217,73 @@ void processes(CPU *cpu, int instr_code)
 }
 
 /**
- * @brief There are two parses over the hexadecimal string to get the print then
- * the execution.
+ * @brief
  *
  * @param f Stream of encoded MIPS instructions
  * @param cpu Pointer to instantiation of CPU
+ * @param file Name of instruction file
+ * @param j Instruction counter
  */
-void hexadecimal_parser(FILE *f, CPU *cpu, char *file)
+void assembly_loader(FILE *f, CPU *cpu, char *file, int *j)
 {
     char line[BUFFER];
-    int j = 0; // Counter for number of instructions loaded
+    for (int i = 0; fgets(line, sizeof(line), f) && *j < MAX_INSTR; i++, (*j)++)
+    {
+        int instr_code = (int)strtol(line, NULL, 16);
+        while ()
+        {
 
-    // Load program into cache and check instruction validity
-    for (int i = 0; fgets(line, sizeof(line), f) && j < MAX_INSTR; i++, j++)
+        }
+
+        check_valid_instruction(file, instr_code, i);
+        cpu->cache[i] = instr_code;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param f Stream of encoded MIPS instructions
+ * @param cpu Pointer to instantiation of CPU
+ * @param file Name of instruction file
+ * @param j Instruction counter
+ */
+void hexadecimal_loader(FILE *f, CPU *cpu, char *file, int *j)
+{
+    char line[BUFFER];
+    for (int i = 0; fgets(line, sizeof(line), f) && *j < MAX_INSTR; i++, (*j)++)
     {
         int instr_code = (int)strtol(line, NULL, 16);
         check_valid_instruction(file, instr_code, i);
         cpu->cache[i] = instr_code;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param f Stream of encoded MIPS instructions
+ * @param cpu Pointer to instantiation of CPU
+ * @param file Name of instruction file
+ */
+void parser(FILE *f, CPU *cpu, char *file)
+{
+    int j = 0; // Counter for number of instructions loaded
+
+    // Check file type and load program into cache
+    char *file_type = strrchr(file, '.');
+    if (strncmp(file_type, ".s", 3) == 0)
+    {
+        assembly_loader(f, cpu, file, &j);
+    }
+    else if (strncmp(file_type, ".hex", 5) == 0)
+    {
+        hexadecimal_loader(f, cpu, file, &j);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: Incorrect file, type %s\n", file);
+        exit(EXIT_FAILURE);
     }
 
     printf("Program\n");
@@ -286,7 +327,7 @@ int main(int argv, char *argc[])
 
     CPU *cpu = init_CPU();
 
-    hexadecimal_parser(f, cpu, argc[1]);
+    parser(f, cpu, argc[1]);
     print_registers(cpu);
 
     free_CPU(cpu);
