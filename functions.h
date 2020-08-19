@@ -53,11 +53,3 @@ void MIPS_sw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm);
 void MIPS_syscall(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct);
 void MIPS_xor(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd);
 void MIPS_xori(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm);
-
-typedef void *R_funct_ptr_t(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct);
-typedef void *I_funct_ptr_t(CPU *, REGISTER *rs, REGISTER *rt, int imm);
-typedef void *J_funct_ptr_t(CPU *, REGISTER *addr);
-R_funct_ptr_t *R_FUNCT_PTR(int key);
-I_funct_ptr_t *I_FUNCT_PTR(int key);
-J_funct_ptr_t *J_FUNCT_PTR(int key);
-R_funct_ptr_t *P_FUNCT_PTR(int key);

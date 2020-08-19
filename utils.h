@@ -7,10 +7,6 @@
 #define MAX_INSTR 1000
 #define MAX_MEMORY 65536
 
-/******************************************************************************
- *                                X MACROS                                    *
- ******************************************************************************/
-
 /**
  * @def REGISTER_TABLE
  * @brief X macro for registers to store enumerated number, enumerated name
@@ -183,6 +179,32 @@
     _P(SYSCALL, 0b001100, "syscall", MIPS_syscall)
 
 
+
+
+#define _X(REG_NUM, REG_NAME, STR) REG_NUM,
+/**
+ * @enum reg_num_t
+ * @brief Extract `REG_NUM` from `REGISTER_TABLE` and fill enumerated type
+ * `reg_num_t`.
+ */
+typedef enum reg_num_t
+{
+    REGISTER_TABLE
+} reg_num_t;
+#undef _X
+
+#define _X(REG_NUM, REG_NAME, STR) REG_NAME,
+/**
+ * @enum reg_num_t
+ * @brief Extract `REG_NAME` from `REGISTER_TABLE` and fill enumerated type
+ * `reg_num_t`.
+ */
+typedef enum reg_name_t
+{
+    REGISTER_TABLE
+} reg_name_t;
+#undef _X
+
 #define _R(NAME, FUNCT, STR, FUNC_PTR) NAME = FUNCT,
 /**
  * @enum R_t
@@ -226,34 +248,3 @@ typedef enum P_t
     P_TYPE_TABLE
 } P_t;
 #undef _P
-
-/**
- * MIPS data types
- */
-typedef uint32_t word_t; // Size of word.
-typedef uint16_t half_t; // Size of half.
-typedef uint8_t byte_t;  // Size of byte.
-
-#define _X(REG_NUM, REG_NAME, STR) REG_NUM,
-/**
- * @enum reg_num_t
- * @brief Extract `REG_NUM` from `REGISTER_TABLE` and fill enumerated type
- * `reg_num_t`.
- */
-typedef enum reg_num_t
-{
-    REGISTER_TABLE
-} reg_num_t;
-#undef _X
-
-#define _X(REG_NUM, REG_NAME, STR) REG_NAME,
-/**
- * @enum reg_num_t
- * @brief Extract `REG_NAME` from `REGISTER_TABLE` and fill enumerated type
- * `reg_num_t`.
- */
-typedef enum reg_name_t
-{
-    REGISTER_TABLE
-} reg_name_t;
-#undef _X

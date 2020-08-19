@@ -2,8 +2,6 @@
 
 #include <stdbool.h>
 
-#include "utils.h"
-
 /**
  * @struct R_FORMAT
  * @brief Struct with bit fields to store `op`, `rs`, `rt`, `rd`, `shamt`,
@@ -41,10 +39,6 @@ typedef struct J_FORMAT
     unsigned addr : 26;
 } J_FORMAT;
 
-char *R_STR(int key);
-char *I_STR(int key);
-char *J_STR(int key);
-char *P_STR(int key);
 R_FORMAT extract_R_FORMAT(int instr_code);
 I_FORMAT extract_I_FORMAT(int instr_code);
 J_FORMAT extract_J_FORMAT(int instr_code);

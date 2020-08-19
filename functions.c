@@ -1,67 +1,6 @@
 #include <stdio.h>
 
 #include "functions.h"
-#include "utils.h"
-
-#define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-/**
- * @brief Returns the function pointer to an R-type instruction from
- * `R_TYPE_TABLE`
- *
- * @param key Key is an enumerated type
- * @return R_funct_ptr_t*
- */
-R_funct_ptr_t *R_FUNCT_PTR(int key)
-{
-    void *_R_FUNC[] = { R_TYPE_TABLE };
-    return _R_FUNC[key];
-}
-#undef _R
-
-#define _I(NAME, OP, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-/**
- * @brief Returns the function pointer to an I-type instruction from
- * `I_TYPE_TABLE`
- *
- * @param key Key is an enumerated type
- * @return I_funct_ptr_t*
- */
-I_funct_ptr_t *I_FUNCT_PTR(int key)
-{
-    void *_I_FUNC[] = { I_TYPE_TABLE };
-    return _I_FUNC[key];
-}
-#undef _I
-
-#define _J(NAME, OP, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-/**
- * @brief Returns the function pointer to a J-type instruction from
- * `J_TYPE_TABLE`
- *
- * @param key Key is an enumerated type
- * @return J_funct_ptr_t*
- */
-J_funct_ptr_t *J_FUNCT_PTR(int key)
-{
-    void *_J_FUNC[] = { J_TYPE_TABLE };
-    return _J_FUNC[key];
-}
-#undef _J
-
-#define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-/**
- * @brief Returns the function pointer to a pseudo instruction from
- * `P_TYPE_TABLE`
- *
- * @param key Key is an enumerated type
- * @return R_funct_ptr_t*
- */
-R_funct_ptr_t *P_FUNCT_PTR(int key)
-{
-    void *_P_FUNC[] = { P_TYPE_TABLE };
-    return _P_FUNC[key];
-}
-#undef _P
 
 void MIPS_add(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {

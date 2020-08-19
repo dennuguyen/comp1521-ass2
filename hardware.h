@@ -3,6 +3,13 @@
 #include "utils.h"
 
 /**
+ * MIPS data types
+ */
+typedef uint32_t word_t; // Size of word.
+typedef uint16_t half_t; // Size of half.
+typedef uint8_t byte_t;  // Size of byte.
+
+/**
  * @union reg_t
  * @brief Registers are initialised to either wd or fl which are `reg_t`.
  */
@@ -33,7 +40,6 @@ typedef struct CPU
     int cache[MAX_INSTR];         // Cache to store programs
 } CPU;
 
-char *REG_NUM_STR(int key);
 REGISTER *init_reg(reg_name_t name);
 CPU *init_CPU();
 void free_reg(REGISTER *reg);

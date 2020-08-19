@@ -1,5 +1,5 @@
 CC     = clang
-CFLAGS = -Wall -Werror -I.
+CFLAGS = -Wall -I.
 
 smips: smips.o
 	$(CC) $(CFLAGS) smips.c functions.c hardware.c opcode.c -o smips

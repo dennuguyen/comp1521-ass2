@@ -3,28 +3,6 @@
 
 #include "hardware.h"
 
-/******************************************************************************
- *                          REGISTER CONVENTIONS                              *
- ******************************************************************************/
-
-#define _X(REG_NUM, REG_NAME, STR) STR,
-/**
- * @brief Returns the register from `REGISTER_TABLE` as a string.
- *
- * @param key Key is an enumerated type
- * @return char*
- */
-char *REG_NUM_STR(int key)
-{
-    char *_REG_NUM_STR[] = { REGISTER_TABLE };
-    return _REG_NUM_STR[key];
-}
-#undef _X
-
-/******************************************************************************
- *                                Hardware                                    *
- ******************************************************************************/
-
 /**
  * @brief Initialise a register given a register name.
  *

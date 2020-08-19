@@ -55,6 +55,7 @@
 
 #include "functions.h"
 #include "hardware.h"
+#include "hashtable.h"
 #include "opcode.h"
 #include "utils.h"
 
@@ -84,9 +85,9 @@ void print_registers(CPU *cpu)
     printf("Registers After Execution\n");
 
     for (int i = 0; i < NUM_REGISTERS; i++)
-        if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31) // 1521 spim
+        if (cpu->reg[i]->value.wd != 0 && $0 <= i && i <= $31)
             printf("%-3s = %d\n",
-                REG_NUM_STR(cpu->reg[i]->name),
+                REG_NUM_STR[cpu->reg[i]->name],
                 cpu->reg[i]->value.wd);
 }
 
@@ -124,25 +125,25 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         if (instr.funct == SYSCALL)
         {
-            printf("%s", P_STR(instr.funct));
+            printf("%s", P_STR[instr.funct]);
         }
         else
         {
             printf("%-4s %s, %s, %s",
-                P_STR(instr.funct),
-                REG_NUM_STR(instr.rd),
-                REG_NUM_STR(instr.rs),
-                REG_NUM_STR(instr.rt));
+                P_STR[instr.funct],
+                REG_NUM_STR[instr.rd],
+                REG_NUM_STR[instr.rs],
+                REG_NUM_STR[instr.rt]);
         }
     }
     else if (is_R_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
         printf("%-4s %s, %s, %s",
-            R_STR(instr.funct),
-            REG_NUM_STR(instr.rd),
-            REG_NUM_STR(instr.rs),
-            REG_NUM_STR(instr.rt));
+            R_STR[instr.funct],
+            REG_NUM_STR[instr.rd],
+            REG_NUM_STR[instr.rs],
+            REG_NUM_STR[instr.rt]);
     }
     else if (is_I_FORMAT(instr_code))
     {
@@ -150,30 +151,31 @@ void print_instruction_by_format(CPU *cpu, int instr_code)
         if (instr.op == BEQ || instr.op == BNE)
         {
             printf("%-4s %s, %s, %d",
-                I_STR(instr.op),
-                REG_NUM_STR(instr.rs),
-                REG_NUM_STR(instr.rt), instr.imm);
+                I_STR[instr.op],
+                REG_NUM_STR[instr.rs],
+                REG_NUM_STR[instr.rt],
+                instr.imm);
         }
         else if (instr.op == LUI)
         {
             printf("%-4s %s, %d",
-                I_STR(instr.op),
-                REG_NUM_STR(instr.rt),
+                I_STR[instr.op],
+                REG_NUM_STR[instr.rt],
                 instr.imm);
         }
         else
         {
             printf("%-4s %s, %s, %d",
-                I_STR(instr.op),
-                REG_NUM_STR(instr.rt),
-                REG_NUM_STR(instr.rs),
+                I_STR[instr.op],
+                REG_NUM_STR[instr.rt],
+                REG_NUM_STR[instr.rs],
                 instr.imm);
         }
     }
     else if (is_J_FORMAT(instr_code))
     {
         J_FORMAT instr = extract_J_FORMAT(instr_code);
-        printf("%-4s %d", J_STR(instr.op), instr.addr);
+        printf("%-4s %d", J_STR[instr.op], instr.addr);
     }
 }
 
@@ -188,39 +190,35 @@ void processes(CPU *cpu, int instr_code)
     if (is_P_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
-        P_FUNCT_PTR(instr.funct)
-            (cpu,
-                cpu->reg[instr.rs],
-                cpu->reg[instr.rt],
-                cpu->reg[instr.rd],
-                instr.shamt,
-                instr.funct);
+        (*P_FUNCT_PTR[instr.funct])(cpu,
+            cpu->reg[instr.rs],
+            cpu->reg[instr.rt],
+            cpu->reg[instr.rd],
+            instr.shamt,
+            instr.funct);
     }
     else if (is_R_FORMAT(instr_code))
     {
         R_FORMAT instr = extract_R_FORMAT(instr_code);
-        R_FUNCT_PTR(instr.funct)
-            (cpu,
-                cpu->reg[instr.rs],
-                cpu->reg[instr.rt],
-                cpu->reg[instr.rd],
-                instr.shamt,
-                instr.funct);
+        (*R_FUNCT_PTR[instr.funct])(cpu,
+            cpu->reg[instr.rs],
+            cpu->reg[instr.rt],
+            cpu->reg[instr.rd],
+            instr.shamt,
+            instr.funct);
     }
     else if (is_I_FORMAT(instr_code))
     {
         I_FORMAT instr = extract_I_FORMAT(instr_code);
-        I_FUNCT_PTR(instr.op)
-            (cpu,
-                cpu->reg[instr.rs],
-                cpu->reg[instr.rt],
-                instr.imm);
+        (*I_FUNCT_PTR[instr.op])(cpu,
+            cpu->reg[instr.rs],
+            cpu->reg[instr.rt],
+            instr.imm);
     }
     else if (is_J_FORMAT(instr_code))
     {
         J_FORMAT instr = extract_J_FORMAT(instr_code);
-        J_FUNCT_PTR(instr.op)
-            (cpu, cpu->reg[instr.addr]);
+        (*J_FUNCT_PTR[instr.op])(cpu, cpu->reg[instr.addr]);
     }
 
     // Clean up registers
