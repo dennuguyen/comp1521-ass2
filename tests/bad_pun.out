@@ -1,0 +1,11 @@
+Program
+  0: lui  $1, 4097
+  1: ori  $4, $1, 0
+  2: ori  $2, $0, 4
+  3: syscall
+Output
+Unknown system call: 4
+Registers After Execution
+$1  = 268500992
+$2  = 4
+$4  = 268500992

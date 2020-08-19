@@ -1,0 +1,5 @@
+Program
+  0: ori  $8, $0, 1
+Output
+Registers After Execution
+$8  = 1

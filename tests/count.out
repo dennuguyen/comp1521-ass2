@@ -1,0 +1,25 @@
+Program
+  0: lui  $1, 4097
+  1: ori  $4, $1, 0
+  2: ori  $2, $0, 4
+  3: syscall
+  4: ori  $2, $0, 5
+  5: syscall
+  6: add  $8, $0, $2
+  7: ori  $9, $0, 1
+  8: slt  $1, $8, $9
+  9: bne  $1, $0, 9
+ 10: add  $4, $0, $9
+ 11: ori  $2, $0, 1
+ 12: syscall
+ 13: ori  $4, $0, 10
+ 14: ori  $2, $0, 11
+ 15: syscall
+ 16: addi $9, $9, 1
+ 17: bgez $1, $0, -9
+Output
+Unknown system call: 4
+Registers After Execution
+$1  = 268500992
+$2  = 4
+$4  = 268500992
