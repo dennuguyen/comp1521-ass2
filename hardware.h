@@ -2,6 +2,9 @@
 
 #include "utils.h"
 
+#define MAX_INSTR 1000
+#define MAX_MEMORY 65536
+
 /**
  * MIPS data types
  */

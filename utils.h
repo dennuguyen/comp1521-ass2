@@ -3,9 +3,6 @@
 #include <stdint.h>
 
 #define NUM_REGISTERS 60
-#define BUFFER 4096
-#define MAX_INSTR 1000
-#define MAX_MEMORY 65536
 
 /**
  * @def REGISTER_TABLE

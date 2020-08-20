@@ -23,14 +23,14 @@
  * Instruction format: 000000 00000 00000 00000 00000 000000
  *
  * Resources:
- *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html instruction formatting
- *  - https://opencores.org/projects/plasma/opcodes opcodes
- *  - https://www.slideshare.net/tagbagtroj/mips-opcodes MIPS opcodes
- *  - http://www.drdobbs.com/the-new-c-x-macros/184401387 X macros
- *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf MIPS reference
- *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf            SPIM manual
- *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html                  floating point instructions
- *  - http://matthews.sites.truman.edu/files/2019/11/pseudoinstructions.pdf     pseudo
+ *  - http://max.cs.kzoo.edu/cs230/Resources/MIPS/MachineXL/InstructionFormats.html :: instruction formatting
+ *  - https://opencores.org/projects/plasma/opcodes                                 :: opcodes
+ *  - https://www.slideshare.net/tagbagtroj/mips-opcodes                            :: MIPS opcodes
+ *  - http://www.drdobbs.com/the-new-c-x-macros/184401387                           :: X macros
+ *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf        :: MIPS reference
+ *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf                :: SPIM manual
+ *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html                      :: floating point instructions
+ *  - http://matthews.sites.truman.edu/files/2019/11/pseudoinstructions.pdf         :: pseudo instructions
  *
  * @todo
  *  - check if unsigned functions are correct
@@ -55,6 +55,8 @@
 #include "hashtable.h"
 #include "opcode.h"
 #include "utils.h"
+
+#define BUFFER 4096
 
 /**
  * @brief Print bits from MSB to LSB.
@@ -343,19 +345,19 @@ int main(int argv, char *argc[])
 
     free_CPU(cpu);
     fclose(f);
-    // for (int i = 0; i < n_R_LIST; i++)
+    // for (int i = 0; i < NUM_R_INSTR; i++)
     //     printf("%d ", R_LIST[i]);
     // printf("\n");
 
-    // for (int i = 0; i < n_I_LIST; i++)
+    // for (int i = 0; i < NUM_I_INSTR; i++)
     //     printf("%d ", I_LIST[i]);
     // printf("\n");
 
-    // for (int i = 0; i < n_J_LIST; i++)
+    // for (int i = 0; i < NUM_J_INSTR; i++)
     //     printf("%d ", J_LIST[i]);
     // printf("\n");
 
-    // for (int i = 0; i < n_P_LIST; i++)
+    // for (int i = 0; i < NUM_P_INSTR; i++)
     //     printf("%d ", P_LIST[i]);
     // printf("\n");
 

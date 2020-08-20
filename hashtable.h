@@ -9,10 +9,10 @@ extern int J_LIST[];
 extern int P_LIST[];
 
 // Size of lists
-extern const int n_R_LIST;
-extern const int n_I_LIST;
-extern const int n_J_LIST;
-extern const int n_P_LIST;
+extern const int NUM_R_INSTR;
+extern const int NUM_I_INSTR;
+extern const int NUM_J_INSTR;
+extern const int NUM_P_INSTR;
 
 // Function pointer lists
 extern void (*R_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct);

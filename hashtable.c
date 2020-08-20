@@ -5,23 +5,23 @@
 #define SIZEOF(list) (sizeof(list) / sizeof(list[0]))
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNCT,
-const int n_R_LIST = SIZEOF((int[]) { R_TYPE_TABLE });
-int R_LIST[] = { [0 ... n_R_LIST] = -1, R_TYPE_TABLE };
+const int NUM_R_INSTR = SIZEOF((int[]) { R_TYPE_TABLE });
+int R_LIST[] = { [0 ... NUM_R_INSTR] = -1, R_TYPE_TABLE };
 #undef _R
 
 #define _I(NAME, OP, STR, FUNC_PTR) [NAME] = OP,
-const int n_I_LIST = SIZEOF((int[]) { I_TYPE_TABLE });
-int I_LIST[] = { [0 ... n_I_LIST] = -1, I_TYPE_TABLE };
+const int NUM_I_INSTR = SIZEOF((int[]) { I_TYPE_TABLE });
+int I_LIST[] = { [0 ... NUM_I_INSTR] = -1, I_TYPE_TABLE };
 #undef _I
 
 #define _J(NAME, OP, STR, FUNC_PTR) [NAME] = OP,
-const int n_J_LIST = SIZEOF((int[]) { J_TYPE_TABLE });
-int J_LIST[] = { [0 ... n_J_LIST] = -1, J_TYPE_TABLE };
+const int NUM_J_INSTR = SIZEOF((int[]) { J_TYPE_TABLE });
+int J_LIST[] = { [0 ... NUM_J_INSTR] = -1, J_TYPE_TABLE };
 #undef _J
 
 #define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNCT,
-const int n_P_LIST = SIZEOF((int[]) { P_TYPE_TABLE });
-int P_LIST[] = { [0 ... n_P_LIST] = -1, P_TYPE_TABLE };
+const int NUM_P_INSTR = SIZEOF((int[]) { P_TYPE_TABLE });
+int P_LIST[] = { [0 ... NUM_P_INSTR] = -1, P_TYPE_TABLE };
 #undef _P
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
