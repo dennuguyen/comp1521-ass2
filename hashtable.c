@@ -2,28 +2,26 @@
 #include "hashtable.h"
 #include "utils.h"
 
+#define SIZEOF(list) (sizeof(list) / sizeof(list[0]))
+
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNCT,
-static int _R_LIST[] = { R_TYPE_TABLE };
-const int n_R_LIST = sizeof(_R_LIST) / sizeof(_R_LIST[0]);
-int R_LIST[] = { [0 ... n_R_LIST - 1] = -1, R_TYPE_TABLE };
+const int n_R_LIST = SIZEOF((int[]) { R_TYPE_TABLE });
+int R_LIST[] = { [0 ... n_R_LIST] = -1, R_TYPE_TABLE };
 #undef _R
 
 #define _I(NAME, OP, STR, FUNC_PTR) [NAME] = OP,
-static int _I_LIST[] = { I_TYPE_TABLE };
-const int n_I_LIST = sizeof(_I_LIST) / sizeof(_I_LIST[0]);
-int I_LIST[] = { [0 ... n_I_LIST - 1] = -1, I_TYPE_TABLE };
+const int n_I_LIST = SIZEOF((int[]) { I_TYPE_TABLE });
+int I_LIST[] = { [0 ... n_I_LIST] = -1, I_TYPE_TABLE };
 #undef _I
 
 #define _J(NAME, OP, STR, FUNC_PTR) [NAME] = OP,
-static int _J_LIST[] = { J_TYPE_TABLE };
-const int n_J_LIST = sizeof(_J_LIST) / sizeof(_J_LIST[0]);
-int J_LIST[] = { [0 ... n_J_LIST - 1] = -1, J_TYPE_TABLE };
+const int n_J_LIST = SIZEOF((int[]) { J_TYPE_TABLE });
+int J_LIST[] = { [0 ... n_J_LIST] = -1, J_TYPE_TABLE };
 #undef _J
 
 #define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNCT,
-static int _P_LIST[] = { P_TYPE_TABLE };
-const int n_P_LIST = sizeof(_P_LIST) / sizeof(_P_LIST[0]);
-int P_LIST[] = { [0 ... n_P_LIST - 1] = -1, P_TYPE_TABLE };
+const int n_P_LIST = SIZEOF((int[]) { P_TYPE_TABLE });
+int P_LIST[] = { [0 ... n_P_LIST] = -1, P_TYPE_TABLE };
 #undef _P
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
