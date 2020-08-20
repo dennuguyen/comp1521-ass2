@@ -345,21 +345,5 @@ int main(int argv, char *argc[])
 
     free_CPU(cpu);
     fclose(f);
-    // for (int i = 0; i < NUM_R_INSTR; i++)
-    //     printf("%d ", R_LIST[i]);
-    // printf("\n");
-
-    // for (int i = 0; i < NUM_I_INSTR; i++)
-    //     printf("%d ", I_LIST[i]);
-    // printf("\n");
-
-    // for (int i = 0; i < NUM_J_INSTR; i++)
-    //     printf("%d ", J_LIST[i]);
-    // printf("\n");
-
-    // for (int i = 0; i < NUM_P_INSTR; i++)
-    //     printf("%d ", P_LIST[i]);
-    // printf("\n");
-
     return EXIT_SUCCESS;
 }
