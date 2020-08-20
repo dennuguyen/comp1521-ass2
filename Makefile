@@ -1,5 +1,5 @@
 CC     = clang
-CFLAGS = -Wall -I.
+CFLAGS = -Wall -Wno-initializer-overrides -I.
 
 all: clean smips
 
