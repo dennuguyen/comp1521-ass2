@@ -40,7 +40,6 @@
  *  - assembly parser
  *  - resolve cases where some instructions have common codes
  *  - syscall
- *  - redo is format functions
  */
 
 #include <assert.h>

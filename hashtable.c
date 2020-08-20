@@ -40,8 +40,12 @@ void (*J_FUNCT_PTR[])(CPU *, REGISTER *addr) = { J_TYPE_TABLE };
 void (*P_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct) = { P_TYPE_TABLE };
 #undef _P
 
-#define _X(REG_NUM, REG_NAME, STR) STR,
+#define _X(REG_NUM, REG_NAME, NUM_STR, NAME_STR) NUM_STR,
 char *REG_NUM_STR[] = { REGISTER_TABLE };
+#undef _X
+
+#define _X(REG_NUM, REG_NAME, NUM_STR, NAME_STR) NAME_STR,
+char *REG_NAME_STR[] = { REGISTER_TABLE };
 #undef _X
 
 #define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = STR,

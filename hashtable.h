@@ -22,6 +22,7 @@ extern void (*P_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, in
 
 // String lists
 extern char *REG_NUM_STR[];
+extern char *REG_NAME_STR[];
 extern char *R_STR[];
 extern char *I_STR[];
 extern char *J_STR[];
