@@ -28,16 +28,22 @@
  *  - https://www.slideshare.net/tagbagtroj/mips-opcodes MIPS opcodes
  *  - http://www.drdobbs.com/the-new-c-x-macros/184401387 X macros
  *  - https://uweb.engr.arizona.edu/~ece369/Resources/spim/MIPSReference.pdf MIPS reference
- *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf SPIM manual
- *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html floating point instructions
+ *  - https://web.stanford.edu/class/cs143/materials/SPIM_Manual.pdf            SPIM manual
+ *  - https://www.doc.ic.ac.uk/lab/secondyear/spim/node20.html                  floating point instructions
+ *  - http://matthews.sites.truman.edu/files/2019/11/pseudoinstructions.pdf     pseudo
  *
  * @todo
  *  - check if unsigned functions are correct
  *  - implement common pseudo instructions
+ *      - lw, lb, sw, sb, li, move, la, blt, ble, bgt, bge
  *  - stack frames
  *  - assembly parser
+ *  - resolve cases where some instructions have common codes
+ *  - syscall
+ *  - redo is format functions
  */
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -211,6 +217,11 @@ void processes(CPU *cpu, int instr_code)
         J_FORMAT instr = extract_J_FORMAT(instr_code);
         (*J_FUNCT_PTR[instr.op])(cpu, cpu->reg[instr.addr]);
     }
+    else
+    {
+        printf("Invalid instruction code: %.6d\n", instr_code);
+        exit(EXIT_FAILURE);
+    }
 
     // Clean up registers
     cpu->reg[$zero]->value.wd = 0;
@@ -230,10 +241,10 @@ void assembly_loader(FILE *f, CPU *cpu, char *file, int *j)
     for (int i = 0; fgets(line, sizeof(line), f) && *j < MAX_INSTR; i++, (*j)++)
     {
         int instr_code = (int)strtol(line, NULL, 16);
-        while ()
-        {
+        // while ()
+        // {
 
-        }
+        // }
 
         check_valid_instruction(file, instr_code, i);
         cpu->cache[i] = instr_code;
@@ -332,6 +343,21 @@ int main(int argv, char *argc[])
 
     free_CPU(cpu);
     fclose(f);
+    // for (int i = 0; i < n_R_LIST; i++)
+    //     printf("%d ", R_LIST[i]);
+    // printf("\n");
+
+    // for (int i = 0; i < n_I_LIST; i++)
+    //     printf("%d ", I_LIST[i]);
+    // printf("\n");
+
+    // for (int i = 0; i < n_J_LIST; i++)
+    //     printf("%d ", J_LIST[i]);
+    // printf("\n");
+
+    // for (int i = 0; i < n_P_LIST; i++)
+    //     printf("%d ", P_LIST[i]);
+    // printf("\n");
 
     return EXIT_SUCCESS;
 }

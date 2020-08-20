@@ -1,41 +1,28 @@
 #pragma once
 
-#include "functions.h"
 #include "hardware.h"
-#include "utils.h"
 
-#define _X(REG_NUM, REG_NAME, STR) STR,
-char *REG_NUM_STR[] = { REGISTER_TABLE };
-#undef _X
+// Lists
+extern int R_LIST[];
+extern int I_LIST[];
+extern int J_LIST[];
+extern int P_LIST[];
 
-#define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void (*R_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct) = { R_TYPE_TABLE };
-#undef _R
+// Size of lists
+extern const int n_R_LIST;
+extern const int n_I_LIST;
+extern const int n_J_LIST;
+extern const int n_P_LIST;
 
-#define _I(NAME, OP, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void (*I_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, int imm) = { I_TYPE_TABLE };
-#undef _I
+// Function pointer lists
+extern void (*R_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct);
+extern void (*I_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, int imm);
+extern void (*J_FUNCT_PTR[])(CPU *, REGISTER *addr);
+extern void (*P_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct);
 
-#define _J(NAME, OP, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void (*J_FUNCT_PTR[])(CPU *, REGISTER *addr) = { J_TYPE_TABLE };
-#undef _J
-
-#define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = FUNC_PTR,
-void (*P_FUNCT_PTR[])(CPU *, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct) = { P_TYPE_TABLE };
-#undef _P
-
-#define _R(NAME, FUNCT, STR, FUNC_PTR) [NAME] = STR,
-char *R_STR[] = { R_TYPE_TABLE };
-#undef _R
-
-#define _I(NAME, OP, STR, FUNC_PTR) [NAME] = STR,
-char *I_STR[] = { I_TYPE_TABLE };
-#undef _I
-
-#define _J(NAME, OP, STR, FUNC_PTR) [NAME] = STR,
-char *J_STR[] = { J_TYPE_TABLE };
-#undef _J
-
-#define _P(NAME, FUNCT, STR, FUNC_PTR) [NAME] = STR,
-char *P_STR[] = { P_TYPE_TABLE };
-#undef _P
+// String lists
+extern char *REG_NUM_STR[];
+extern char *R_STR[];
+extern char *I_STR[];
+extern char *J_STR[];
+extern char *P_STR[];

@@ -178,9 +178,6 @@
     _P(MUL, 0b000010, "mul", MIPS_mul) \
     _P(SYSCALL, 0b001100, "syscall", MIPS_syscall)
 
-
-
-
 #define _X(REG_NUM, REG_NAME, STR) REG_NUM,
 /**
  * @enum reg_num_t

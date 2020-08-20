@@ -1,1 +1,4 @@
-0.hex:1: invalid instruction code: 00000000
+Program
+  0: sll  $0, $0, $0
+Output
+Registers After Execution

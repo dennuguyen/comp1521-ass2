@@ -5,7 +5,7 @@ GREEN="\033[32m"
 YELLOW="\033[33m"
 RESET_COLOR="\033[0m"
 
-QNAME="RUNNING SMIPS TESTS"
+QNAME="SMIPS"
 BIN="./smips"
 
 echo "Compiling..."

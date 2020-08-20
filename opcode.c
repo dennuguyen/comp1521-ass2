@@ -1,3 +1,4 @@
+#include "hashtable.h"
 #include "opcode.h"
 #include "utils.h"
 
@@ -53,8 +54,8 @@ J_FORMAT extract_J_FORMAT(int instr_code)
 }
 
 /**
- * @brief Check if opcode is in R format by comparing its op value against
- * 0b000000.
+ * @brief Check if opcode is in R-format by comparing its funct value against
+ * known R-instructions.
  *
  * @param instr_code Encoded MIPS instruction
  * @return true
@@ -63,13 +64,31 @@ J_FORMAT extract_J_FORMAT(int instr_code)
 bool is_R_FORMAT(int instr_code)
 {
     R_FORMAT instr = extract_R_FORMAT(instr_code);
-    if (instr.op == 0b000000)
-        return true;
+    for (int i = 0; i < n_R_LIST; i++)
+        if (instr.op == 0b000000 && instr.funct == R_LIST[i])
+            return true;
     return false;
 }
 
 /**
- * @brief Check if instruction is in J format by comparing its op value against
+ * @brief Check if opcode is in I-format by comparing its op value against
+ * known I-instructions.
+ *
+ * @param instr_code Encoded MIPS instruction
+ * @return true
+ * @return false
+ */
+bool is_I_FORMAT(int instr_code)
+{
+    I_FORMAT instr = extract_I_FORMAT(instr_code);
+    for (int i = 0; i < n_I_LIST; i++)
+        if (instr.op == I_LIST[i])
+            return true;
+    return false;
+}
+
+/**
+ * @brief Check if instruction is in J-format by comparing its op value against
  * known J-instructions.
  *
  * @param instr_code Encoded MIPS instruction
@@ -79,8 +98,9 @@ bool is_R_FORMAT(int instr_code)
 bool is_J_FORMAT(int instr_code)
 {
     J_FORMAT instr = extract_J_FORMAT(instr_code);
-    if (instr.op == J || instr.op == JAL)
-        return true;
+    for (int i = 0; i < n_J_LIST; i++)
+        if (instr.op == J_LIST[i])
+            return true;
     return false;
 }
 
@@ -95,28 +115,8 @@ bool is_J_FORMAT(int instr_code)
 bool is_P_FORMAT(int instr_code)
 {
     R_FORMAT instr = extract_R_FORMAT(instr_code);
-    if (instr.funct == MUL || instr.funct == SYSCALL)
-        return true;
-    return false;
-}
-
-/**
- * @brief Check if instruction is in I format if it does not match any other
- * instruction criteria.
- *
- * @param instr_code Encoded MIPS instruction
- * @return true
- * @return false
- */
-bool is_I_FORMAT(int instr_code)
-{
-    // I_FORMAT instr = extract_I_FORMAT(instr_code);
-    // for (int i = 0; i < I_SIZE; i++)
-    //     if(instr.op == I_)
-
-    if (!is_R_FORMAT(instr_code) &&
-        !is_J_FORMAT(instr_code) &&
-        !is_P_FORMAT(instr_code))
-        return true;
+    for (int i = 0; i < n_P_LIST; i++)
+        if (instr.funct == P_LIST[i])
+            return true;
     return false;
 }
