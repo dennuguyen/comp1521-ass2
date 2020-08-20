@@ -33,6 +33,15 @@ typedef struct REGISTER
 } REGISTER;
 
 /**
+ * @struct MEMORY
+ * @brief
+ */
+typedef struct MEMORY
+{
+    int memory[MAX_INSTR];
+} MEMORY;
+
+/**
  * @struct CPU
  * @brief A MIPS CPU has a program counter, registers and cache.
  */
@@ -42,6 +51,17 @@ typedef struct CPU
     REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
     int cache[MAX_INSTR];         // Cache to store programs
 } CPU;
+
+/**
+ * @struct FPU
+ * @brief A MIPS FPU has a program counter, registers and cache.
+ */
+typedef struct FPU
+{
+    unsigned int pc;              // Program Counter
+    REGISTER *reg[NUM_REGISTERS]; // Array of CPU registers
+    int cache[MAX_INSTR];         // Cache to store programs
+} FPU;
 
 REGISTER *init_reg(reg_name_t name);
 CPU *init_CPU();

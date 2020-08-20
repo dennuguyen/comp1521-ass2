@@ -126,6 +126,11 @@ void MIPS_lw(CPU *cpu, REGISTER *rs, REGISTER *rt, int imm)
     rt->value.wd = rs->value.wd;
 }
 
+void MIPS_mfc0()
+{
+
+}
+
 void MIPS_mfhi(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
     rd->value.wd = cpu->reg[HI]->value.wd;
@@ -134,6 +139,11 @@ void MIPS_mfhi(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, in
 void MIPS_mflo(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)
 {
     rd->value.wd = cpu->reg[LO]->value.wd;
+}
+
+void MIPS_mtc0()
+{
+
 }
 
 void MIPS_mthi(CPU *cpu, REGISTER *rs, REGISTER *rt, REGISTER *rd, int shamt, int funct)

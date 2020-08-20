@@ -241,6 +241,20 @@ void assembly_loader(FILE *f, CPU *cpu, char *file, int *j)
     char line[BUFFER];
     for (int i = 0; fgets(line, sizeof(line), f) && *j < MAX_INSTR; i++, (*j)++)
     {
+        // .data
+
+        // get label
+
+        // get data
+
+        // .text
+
+        // get label
+
+
+        // get opcode
+
+        // get operand
         int instr_code = (int)strtol(line, NULL, 16);
         // while ()
         // {
