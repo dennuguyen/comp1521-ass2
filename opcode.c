@@ -82,7 +82,10 @@ bool is_I_FORMAT(int instr_code)
 {
     I_FORMAT instr = extract_I_FORMAT(instr_code);
     for (int i = 0; i < NUM_I_INSTR; i++)
-        if (instr.op == I_LIST[i])
+        if (instr.op != 0b000000 &&
+            (instr.op >> 1) != 0b00001 &&
+            (instr.op >> 2) != 0b0100 &&
+            instr.op == I_LIST[i])
             return true;
     return false;
 }
@@ -99,7 +102,7 @@ bool is_J_FORMAT(int instr_code)
 {
     J_FORMAT instr = extract_J_FORMAT(instr_code);
     for (int i = 0; i < NUM_J_INSTR; i++)
-        if (instr.op == J_LIST[i])
+        if ((instr.op >> 1) == 0b00001 && instr.op == J_LIST[i])
             return true;
     return false;
 }

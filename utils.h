@@ -176,6 +176,14 @@
     _P(MUL, 0b000010, "mul", MIPS_mul) \
     _P(SYSCALL, 0b001100, "syscall", MIPS_syscall)
 
+#define F_TYPE_TABLE                 \
+    _F(ADD_S, 0b000000, "add.s")     \
+    _F(CVT_S_W, 0b100000, "cvt.s.w") \
+    _F(CVT_W_S, 0b100100, "cvt.w.s") \
+    _F(DIV_S, 0b000011, "div.s")     \
+    _F(MFC1, 0b000000, "mfc1")       \
+    _F(MOVE_S, 0b000110, "move.s")
+
 #define _X(REG_NUM, REG_NAME, NUM_STR, NAME_STR) REG_NUM,
 /**
  * @enum reg_num_t
